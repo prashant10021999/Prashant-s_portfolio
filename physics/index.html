@@ -61,6 +61,15 @@ main{padding:clamp(1.5rem,5vw,3rem) 0 3rem}h1,h2,h3,p{margin:0 0 .5rem}h1{font-s
   </div>
   <div id="hcv-exercises"></div>
 </div>
+<div id="advanced-browser" hidden>
+  <h3>Choose a part</h3>
+  <div id="advanced-parts" class="collections" role="group" aria-label="JEE Advanced parts"></div>
+  <div id="advanced-chapter-control" class="group-select" hidden>
+    <label for="advanced-chapter">Choose a chapter</label>
+    <select id="advanced-chapter"></select>
+  </div>
+  <div id="advanced-chapter-pdf"></div>
+</div>
 <div id="results"></div>
 <noscript><p>Enable JavaScript to browse the solutions.</p></noscript>
 </section>
@@ -85,7 +94,7 @@ const formatGroup = slug => slug.split('-').map(word => {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }).join(' ');
 const remoteRepositories = new Map([
-  ['jee-advanced', 'jee-advanced-solutions'], ['jee-main', 'jee-main-solutions']
+  ['jee-main', 'jee-main-solutions']
 ]);
 const pending = new Set(remoteRepositories.keys());
 const unavailable = new Set();
@@ -173,7 +182,31 @@ const hcvVolumes = new Map([
     ]}
   ]]
 ]);
-const exerciseRepositories = [...pathfinderParts.values(), ...sbtVolumes.values(), ...[...hcvVolumes.values()].flat()]
+const advancedParts = new Map([
+  ['1', {repository: 'jee-advanced-part-1', start: 1, chapters: [
+    ['units-and-measurements', 'Units_and_Measurements_Workbook.pdf'],
+    ['kinematics', 'Prashant_Sir_Kinematics_Workbook.pdf'],
+    ['laws-of-motion', 'Laws_of_Motion_Workbook.pdf'],
+    ['work-power-and-energy', 'Work_Power_and_Energy_Workbook.pdf'],
+    ['centre-of-mass-momentum-and-collisions', 'Centre_of_Mass_Momentum_and_Collisions_Workbook.pdf'],
+    ['rotational-motion', 'Rotational_Motion_Workbook.pdf'],
+    ['gravitation', 'Gravitation_Workbook.pdf'],
+    ['properties-of-matter', 'Properties_of_Matter_Workbook.pdf'],
+    ['heat-and-thermodynamics', 'Heat_and_Thermodynamics_Workbook.pdf']
+  ]}],
+  ['2', {repository: 'jee-advanced-part-2', start: 10, chapters: [
+    ['simple-harmonic-motion', 'Simple_Harmonic_Motion_Workbook.pdf'],
+    ['waves', 'Waves_Workbook.pdf'],
+    ['electrostatics', 'Electrostatics_Workbook.pdf'],
+    ['capacitors', 'Capacitors_Workbook.pdf'],
+    ['current-electricity', 'Current_Electricity_Workbook.pdf'],
+    ['magnetism', 'Magnetism_Workbook.pdf'],
+    ['electromagnetic-induction-and-alternating-current', 'Electromagnetic_Induction_and_Alternating_Current_Workbook.pdf'],
+    ['geometrical-optics-and-wave-optics', 'Geometrical_Optics_and_Wave_Optics_Workbook.pdf'],
+    ['modern-physics', 'Modern_Physics_Workbook.pdf']
+  ]}]
+]);
+const exerciseRepositories = [...pathfinderParts.values(), ...sbtVolumes.values(), ...[...hcvVolumes.values()].flat(), ...advancedParts.values()]
   .map(part => part.repository);
 const exercisePending = new Set(exerciseRepositories);
 const exerciseUnavailable = new Set();
@@ -190,6 +223,7 @@ let sbtVolume = '';
 let sbtChapter = '';
 let hcvVolume = '';
 let hcvPart = '';
+let advancedPart = '';
 
 function chapterFolder(slug, number) {
   return String(number).padStart(2, '0') + '-' + slug;
@@ -264,6 +298,11 @@ const hcvPartButtons = document.querySelector('#hcv-parts');
 const hcvChapterControl = document.querySelector('#hcv-chapter-control');
 const hcvChapterSelect = document.querySelector('#hcv-chapter');
 const hcvResults = document.querySelector('#hcv-exercises');
+const advancedBrowser = document.querySelector('#advanced-browser');
+const advancedPartButtons = document.querySelector('#advanced-parts');
+const advancedChapterControl = document.querySelector('#advanced-chapter-control');
+const advancedChapterSelect = document.querySelector('#advanced-chapter');
+const advancedChapterPdf = document.querySelector('#advanced-chapter-pdf');
 let selected = '';
 
 function add(parent, tag, content) {
@@ -279,30 +318,30 @@ function addPdfDownload(parent, url, label) {
   download.setAttribute('aria-label', 'Download ' + label + ' PDF');
 }
 function countLabel(count, label) { return count + ' ' + label + (count === 1 ? '' : 's'); }
+function addPdfActions(item, repository, path, label) {
+  if (exerciseCatalogs.get(repository)?.has('/' + path)) {
+    const url = new URL(path, repositoryUrl(repository)).href;
+    const actions = add(item, 'div', '');
+    actions.className = 'pdf-actions';
+    const view = add(actions, 'a', 'View PDF');
+    view.href = url;
+    view.setAttribute('aria-label', 'View ' + label + ' PDF');
+    addPdfDownload(actions, url, label);
+  } else {
+    const message = exercisePending.has(repository) ? 'Checking…' :
+      exerciseUnavailable.has(repository) ? 'Temporarily unavailable' : 'Coming soon';
+    add(item, 'small', message);
+  }
+}
 function renderExerciseChapter(container, repository, slug, number, exercises) {
   add(container, 'h3', 'Chapter ' + number + ' · ' + formatGroup(slug));
   const list = add(container, 'ul', '');
   list.className = 'solution-list';
-  const catalog = exerciseCatalogs.get(repository);
-  const base = repositoryUrl(repository);
   const folder = 'solutions/' + chapterFolder(slug, number) + '/';
   for (const [label, filename] of exercises) {
     const item = add(list, 'li', '');
     add(item, 'strong', label);
-    const path = folder + filename;
-    if (catalog?.has('/' + path)) {
-      const url = new URL(path, base).href;
-      const actions = add(item, 'div', '');
-      actions.className = 'pdf-actions';
-      const view = add(actions, 'a', 'View PDF');
-      view.href = url;
-      view.setAttribute('aria-label', 'View ' + label + ' PDF');
-      addPdfDownload(actions, url, label);
-    } else {
-      const message = exercisePending.has(repository) ? 'Checking…' :
-        exerciseUnavailable.has(repository) ? 'Temporarily unavailable' : 'Coming soon';
-      add(item, 'small', message);
-    }
+    addPdfActions(item, repository, folder + filename, label);
   }
 }
 function populateChapterOptions(select, chapters, start = 1) {
@@ -394,6 +433,30 @@ function renderHcvBrowser() {
   const slug = part.chapters[number - part.start];
   renderExerciseChapter(hcvResults, part.repository, slug, number, hcvExercises);
 }
+function chooseAdvancedPart(value) {
+  advancedPart = value;
+  const {chapters, start} = advancedParts.get(value);
+  populateChapterOptions(advancedChapterSelect, chapters.map(([slug]) => slug), start);
+  render();
+}
+function renderAdvancedBrowser() {
+  const part = advancedParts.get(advancedPart);
+  status.textContent = part ? countLabel(part.chapters.length, 'chapter') : '';
+  advancedChapterControl.hidden = !part;
+  for (const button of advancedPartButtons.querySelectorAll('button')) {
+    button.setAttribute('aria-pressed', String(button.dataset.choice === advancedPart));
+  }
+  advancedChapterPdf.replaceChildren();
+  if (!part || !advancedChapterSelect.value) return;
+  const number = Number(advancedChapterSelect.value);
+  const [slug, filename] = part.chapters[number - part.start];
+  const list = add(advancedChapterPdf, 'ul', '');
+  list.className = 'solution-list';
+  const item = add(list, 'li', '');
+  const label = formatGroup(slug);
+  add(item, 'strong', 'Chapter ' + number + ' · ' + label);
+  addPdfActions(item, part.repository, 'solutions/' + filename, label);
+}
 function render() {
   for (const button of cards.querySelectorAll('button')) {
     const id = button.dataset.collection;
@@ -402,7 +465,7 @@ function render() {
       button.querySelector('small').textContent = 'Volumes 1 and 2';
       continue;
     }
-    if (id === 'pathfinder') {
+    if (id === 'pathfinder' || id === 'jee-advanced') {
       button.querySelector('small').textContent = 'Parts 1 and 2';
       continue;
     }
@@ -414,16 +477,19 @@ function render() {
   const browsingSbt = selected === 'sbt';
   const browsingPathfinder = selected === 'pathfinder';
   const browsingHcv = selected === 'hcv';
-  const browsingExercises = browsingSbt || browsingPathfinder || browsingHcv;
+  const browsingAdvanced = selected === 'jee-advanced';
+  const browsingExercises = browsingSbt || browsingPathfinder || browsingHcv || browsingAdvanced;
   pathfinderBrowser.hidden = !browsingPathfinder;
   sbtBrowser.hidden = !browsingSbt;
   hcvBrowser.hidden = !browsingHcv;
+  advancedBrowser.hidden = !browsingAdvanced;
   searchControl.hidden = browsingExercises;
   results.hidden = browsingExercises;
   if (browsingExercises) {
     groupControl.hidden = true;
     if (browsingSbt) renderSbtBrowser();
     else if (browsingHcv) renderHcvBrowser();
+    else if (browsingAdvanced) renderAdvancedBrowser();
     else renderPathfinderBrowser();
     return;
   }
@@ -513,6 +579,10 @@ for (const volume of hcvVolumes.keys()) {
   addHcvChoice(hcvVolumeButtons, volume, 'Volume ' + volume, '2 parts', chooseHcvVolume);
 }
 hcvChapterSelect.addEventListener('change', render);
+for (const [part, {chapters, start}] of advancedParts) {
+  addHcvChoice(advancedPartButtons, part, 'Part ' + part, 'Chapters ' + start + '–' + (start + chapters.length - 1), chooseAdvancedPart);
+}
+advancedChapterSelect.addEventListener('change', render);
 search.addEventListener('input', render);
 group.addEventListener('change', render);
 render();

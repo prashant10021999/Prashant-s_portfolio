@@ -1,0 +1,148 @@
+---
+---
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Physics Solutions | Prashant Barnwal</title>
+<style>
+:root{color-scheme:light;font:16px/1.6 system-ui,sans-serif;--ink:#152941;--muted:#506378;--blue:#125aa3;--edge:#cad8e6;--page:#f3f7fb}
+*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink)}
+header{background:#fff;border-bottom:1px solid var(--edge)}
+nav,main{width:min(1020px,calc(100% - 2rem));margin:auto}
+nav{display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap;padding:.9rem 0}
+a{color:var(--blue);text-underline-offset:.2em}nav a{font-weight:650}
+main{padding:clamp(1.5rem,5vw,3rem) 0 3rem}h1,h2,h3,p{margin:0 0 .5rem}h1{font-size:clamp(2.2rem,6vw,3.6rem);letter-spacing:-.045em;line-height:1.12}h2{font-size:1.35rem}h3{font-size:1.05rem}p,small{color:var(--muted)}
+.controls{margin:1.4rem 0 1.75rem}label{display:block;font-weight:650}input,select,button{font:inherit;color:inherit}input,select{max-width:100%;width:32rem;border:1px solid #8197ae;border-radius:.55rem;background:#fff;padding:.55rem .75rem}select{width:auto;min-width:12rem}button{cursor:pointer}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #1669ba;outline-offset:3px}
+.collections{display:grid;grid-template-columns:repeat(3,1fr);gap:.65rem;margin:.75rem 0 1.4rem}.collection{background:#fff;border:1px solid var(--edge);border-radius:.65rem;text-align:left;padding:.7rem .85rem;min-height:4.4rem}.collection strong,.collection small{display:block}.collection:hover,.collection[aria-pressed=true]{border-color:var(--blue)}.collection[aria-pressed=true]{background:#e5f0fc}.results-head{display:flex;align-items:baseline;justify-content:space-between;gap:.7rem;flex-wrap:wrap}.group{margin:1rem 0}.solution-list{list-style:none;padding:0;margin:.4rem 0}.solution-list li,.empty{background:#fff;border:1px solid var(--edge);border-radius:.55rem;padding:.7rem .85rem;margin:.45rem 0}.solution-list li{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;flex-wrap:wrap}.solution-list a:first-child{font-weight:650}.group-select{margin:.7rem 0 1rem}[hidden]{display:none!important}
+@media(max-width:690px){.collections{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:365px){.collections{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><nav aria-label="Site"><strong>Prashant Barnwal</strong><a href="../">Back to portfolio</a></nav></header>
+<main>
+<h1>Physics Solutions</h1>
+<p>Find worked solutions by chapter, exam session, or question number.</p>
+<div class="controls"><label for="search">Search solutions</label><input id="search" type="search" placeholder="Try kinematics, 2024, or Q12" autocomplete="off"></div>
+<section aria-labelledby="collections-title"><h2 id="collections-title">Collections</h2><div id="collections" class="collections"></div></section>
+<section aria-labelledby="results-title">
+<div class="results-head"><h2 id="results-title">All solutions</h2><span id="status" role="status"></span></div>
+<div id="group-control" class="group-select" hidden><label for="group">Chapter or exam session</label><select id="group"></select></div>
+<div id="results"></div>
+<noscript><p>Enable JavaScript to browse the solutions.</p></noscript>
+</section>
+</main>
+<template id="pdf-files">
+{% for file in site.static_files %}
+  {% assign folder = file.path | slice: 0, 19 %}
+  {% assign extension = file.extname | downcase %}
+  {% if folder == '/physics/solutions/' and extension == '.pdf' %}
+    <span data-path="{{ file.path | escape }}"></span>
+  {% endif %}
+{% endfor %}
+</template>
+<script>
+const collections = new Map([
+  ['pathfinder', 'Pathfinder'], ['sbt', 'SBT'], ['jee-advanced', 'JEE Advanced PYQs'],
+  ['jee-main', 'JEE Main PYQs'], ['csir-net', 'CSIR NET Physical Sciences'], ['gate', 'GATE Physics']
+]);
+const collator = new Intl.Collator('en', {numeric: true});
+const formatGroup = slug => slug.split('-').map(word => {
+  if (['ac', 'dc', 'emi', 'shm'].includes(word)) return word.toUpperCase();
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}).join(' ');
+const files = document.querySelector('#pdf-files').content.querySelectorAll('[data-path]');
+const solutions = [];
+for (const file of files) {
+  const match = /^\/physics\/solutions\/([a-z-]+)\/([a-z0-9]+(?:-[a-z0-9]+)*)\/q(\d+)\.pdf$/i.exec(file.dataset.path);
+  if (!match || !collections.has(match[1])) continue;
+  const [, collection, group, number] = match;
+  const question = Number(number);
+  if (!Number.isSafeInteger(question) || question < 1) continue;
+  solutions.push({collection, group: formatGroup(group), question, url: file.dataset.path.slice('/physics/'.length)});
+}
+solutions.sort((a, b) => collator.compare(a.group, b.group) || a.question - b.question);
+const search = document.querySelector('#search');
+const cards = document.querySelector('#collections');
+const group = document.querySelector('#group');
+const groupControl = document.querySelector('#group-control');
+const results = document.querySelector('#results');
+const title = document.querySelector('#results-title');
+const status = document.querySelector('#status');
+let selected = '';
+
+function add(parent, tag, content) {
+  const element = document.createElement(tag);
+  element.textContent = content;
+  parent.append(element);
+  return element;
+}
+function countLabel(count) { return count + (count === 1 ? ' solution' : ' solutions'); }
+function render() {
+  for (const button of cards.querySelectorAll('button')) {
+    button.setAttribute('aria-pressed', String(button.dataset.collection === selected));
+  }
+  title.textContent = collections.get(selected) || 'All solutions';
+  const inCollection = solutions.filter(solution => !selected || selected === solution.collection);
+  const previousGroup = group.value;
+  const groups = [...new Set(inCollection.map(solution => solution.group))];
+  group.replaceChildren(new Option('All chapters and sessions', ''));
+  for (const name of groups) group.append(new Option(name, name));
+  group.value = groups.includes(previousGroup) ? previousGroup : '';
+  groupControl.hidden = groups.length < 2;
+  const tokens = search.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const matches = inCollection.filter(solution => {
+    if (group.value && solution.group !== group.value) return false;
+    const label = (collections.get(solution.collection) + ' ' + solution.group).toLowerCase();
+    return tokens.every(token => {
+      const explicit = /^q0*(\d+)$/.exec(token);
+      if (explicit) return Number(explicit[1]) === solution.question;
+      return label.includes(token) || (/^\d+$/.test(token) && Number(token) === solution.question);
+    });
+  });
+  results.replaceChildren();
+  status.textContent = countLabel(matches.length);
+  if (!matches.length) {
+    const message = inCollection.length ? 'No matches. Try a different question number or search term.' : 'Solutions will appear here as they are uploaded.';
+    add(results, 'p', message).className = 'empty';
+    return;
+  }
+  const lists = new Map();
+  for (const solution of matches) {
+    const label = selected ? solution.group : collections.get(solution.collection) + ' · ' + solution.group;
+    if (!lists.has(label)) {
+      const section = add(results, 'div', '');
+      section.className = 'group';
+      add(section, 'h3', label);
+      const list = add(section, 'ul', '');
+      list.className = 'solution-list';
+      lists.set(label, list);
+    }
+    const item = add(lists.get(label), 'li', '');
+    add(item, 'a', 'Question ' + solution.question + ' (PDF)').href = solution.url;
+    const download = add(item, 'a', 'Download PDF');
+    download.href = solution.url;
+    download.download = '';
+    download.setAttribute('aria-label', 'Download question ' + solution.question + ' PDF');
+  }
+}
+for (const [id, label] of collections) {
+  const button = add(cards, 'button', '');
+  button.type = 'button';
+  button.className = 'collection';
+  button.dataset.collection = id;
+  add(button, 'strong', label);
+  add(button, 'small', countLabel(solutions.filter(solution => solution.collection === id).length));
+  button.addEventListener('click', () => {
+    selected = selected === id ? '' : id;
+    group.value = '';
+    render();
+  });
+}
+search.addEventListener('input', render);
+group.addEventListener('change', render);
+render();
+</script>
+</body>
+</html>

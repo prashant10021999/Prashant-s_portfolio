@@ -52,17 +52,63 @@ const formatGroup = slug => slug.split('-').map(word => {
   if (['ac', 'dc', 'emi', 'shm'].includes(word)) return word.toUpperCase();
   return word.charAt(0).toUpperCase() + word.slice(1);
 }).join(' ');
-const files = document.querySelector('#pdf-files').content.querySelectorAll('[data-path]');
+const remoteRepositories = new Map([
+  ['pathfinder', 'pathfinder-solutions'], ['sbt', 'sbt-solutions'],
+  ['jee-advanced', 'jee-advanced-solutions'], ['jee-main', 'jee-main-solutions']
+]);
+const pending = new Set(remoteRepositories.keys());
+const unavailable = new Set();
 const solutions = [];
-for (const file of files) {
-  const match = /^\/physics\/solutions\/([a-z-]+)\/([a-z0-9]+(?:-[a-z0-9]+)*)\/q(\d+)\.pdf$/i.exec(file.dataset.path);
-  if (!match || !collections.has(match[1])) continue;
-  const [, collection, group, number] = match;
+const seen = new Set();
+const questionPath = /^([a-z0-9]+(?:-[a-z0-9]+)*)\/q(\d+)\.pdf$/i;
+
+function addSolution(collection, path, url) {
+  const match = questionPath.exec(path);
+  if (!collections.has(collection) || !match) return;
+  const [, group, number] = match;
   const question = Number(number);
-  if (!Number.isSafeInteger(question) || question < 1) continue;
-  solutions.push({collection, group: formatGroup(group), question, url: file.dataset.path.slice('/physics/'.length)});
+  if (!Number.isSafeInteger(question) || question < 1) return;
+  const key = [collection, group.toLowerCase(), question].join('/');
+  if (seen.has(key)) return;
+  seen.add(key);
+  solutions.push({collection, group: formatGroup(group.toLowerCase()), question, url});
 }
-solutions.sort((a, b) => collator.compare(a.group, b.group) || a.question - b.question);
+
+const files = document.querySelector('#pdf-files').content.querySelectorAll('[data-path]');
+for (const file of files) {
+  const path = file.dataset.path;
+  const prefix = '/physics/solutions/';
+  if (!path.startsWith(prefix)) continue;
+  const [collection, group, name, extra] = path.slice(prefix.length).split('/');
+  if (group && name && extra === undefined) {
+    addSolution(collection, group + '/' + name, path.slice('/physics/'.length));
+  }
+}
+function sortSolutions() {
+  solutions.sort((a, b) => collator.compare(a.group, b.group) || a.question - b.question);
+}
+async function loadCatalog(collection, repository) {
+  const base = new URL('../../' + repository + '/', window.location.href);
+  const prefix = '/solutions/';
+  try {
+    const response = await fetch(new URL('solutions/index.json', base));
+    if (!response.ok) throw Error('Catalog unavailable');
+    const paths = await response.json();
+    if (!Array.isArray(paths)) throw Error('Invalid catalog');
+    for (const path of paths) {
+      if (typeof path === 'string' && path.startsWith(prefix) && questionPath.test(path.slice(prefix.length))) {
+        addSolution(collection, path.slice(prefix.length), new URL(path.slice(1), base).href);
+      }
+    }
+  } catch {
+    unavailable.add(collection);
+  } finally {
+    pending.delete(collection);
+    sortSolutions();
+    render();
+  }
+}
+sortSolutions();
 const search = document.querySelector('#search');
 const cards = document.querySelector('#collections');
 const group = document.querySelector('#group');
@@ -81,7 +127,11 @@ function add(parent, tag, content) {
 function countLabel(count) { return count + (count === 1 ? ' solution' : ' solutions'); }
 function render() {
   for (const button of cards.querySelectorAll('button')) {
-    button.setAttribute('aria-pressed', String(button.dataset.collection === selected));
+    const id = button.dataset.collection;
+    button.setAttribute('aria-pressed', String(id === selected));
+    const count = countLabel(solutions.filter(solution => solution.collection === id).length);
+    button.querySelector('small').textContent = pending.has(id) ? 'Loading…' :
+      unavailable.has(id) ? count + ' · index unavailable' : count;
   }
   title.textContent = collections.get(selected) || 'All solutions';
   const inCollection = solutions.filter(solution => !selected || selected === solution.collection);
@@ -102,9 +152,14 @@ function render() {
     });
   });
   results.replaceChildren();
-  status.textContent = countLabel(matches.length);
+  const loading = selected ? pending.has(selected) : pending.size > 0;
+  const missing = selected ? unavailable.has(selected) : unavailable.size > 0;
+  status.textContent = loading ? 'Loading solutions…' : countLabel(matches.length) +
+    (missing ? ' · some results may be missing' : '');
   if (!matches.length) {
-    const message = inCollection.length ? 'No matches. Try a different question number or search term.' : 'Solutions will appear here as they are uploaded.';
+    const message = loading ? 'Checking for published solutions…' : missing ?
+      'A solution index is temporarily unavailable. Try again later.' : inCollection.length ?
+      'No matches. Try a different question number or search term.' : 'Solutions will appear here as they are uploaded.';
     add(results, 'p', message).className = 'empty';
     return;
   }
@@ -133,7 +188,7 @@ for (const [id, label] of collections) {
   button.className = 'collection';
   button.dataset.collection = id;
   add(button, 'strong', label);
-  add(button, 'small', countLabel(solutions.filter(solution => solution.collection === id).length));
+  add(button, 'small', '');
   button.addEventListener('click', () => {
     selected = selected === id ? '' : id;
     group.value = '';
@@ -143,6 +198,7 @@ for (const [id, label] of collections) {
 search.addEventListener('input', render);
 group.addEventListener('change', render);
 render();
+for (const [collection, repository] of remoteRepositories) loadCatalog(collection, repository);
 </script>
 </body>
 </html>

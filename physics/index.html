@@ -48,6 +48,19 @@ main{padding:clamp(1.5rem,5vw,3rem) 0 3rem}h1,h2,h3,p{margin:0 0 .5rem}h1{font-s
   </div>
   <div id="sbt-levels"></div>
 </div>
+<div id="hcv-browser" hidden>
+  <h3>Choose a volume</h3>
+  <div id="hcv-volumes" class="collections" role="group" aria-label="HCV volumes"></div>
+  <div id="hcv-part-control" hidden>
+    <h3>Choose a part</h3>
+    <div id="hcv-parts" class="collections" role="group" aria-label="HCV parts"></div>
+  </div>
+  <div id="hcv-chapter-control" class="group-select" hidden>
+    <label for="hcv-chapter">Choose a chapter</label>
+    <select id="hcv-chapter"></select>
+  </div>
+  <div id="hcv-exercises"></div>
+</div>
 <div id="results"></div>
 <noscript><p>Enable JavaScript to browse the solutions.</p></noscript>
 </section>
@@ -63,7 +76,7 @@ main{padding:clamp(1.5rem,5vw,3rem) 0 3rem}h1,h2,h3,p{margin:0 0 .5rem}h1{font-s
 </template>
 <script>
 const collections = new Map([
-  ['pathfinder', 'Pathfinder'], ['sbt', 'SBT'], ['jee-advanced', 'JEE Advanced PYQs'],
+  ['pathfinder', 'Pathfinder'], ['sbt', 'SBT'], ['hcv', 'HCV'], ['jee-advanced', 'JEE Advanced PYQs'],
   ['jee-main', 'JEE Main PYQs'], ['csir-net', 'CSIR NET Physical Sciences'], ['gate', 'GATE Physics']
 ]);
 const collator = new Intl.Collator('en', {numeric: true});
@@ -132,14 +145,51 @@ const sbtVolumes = new Map([
     'nuclear-physics'
   ]}]
 ]);
-const exerciseRepositories = [...pathfinderParts.values(), ...sbtVolumes.values()].map(part => part.repository);
+const hcvVolumes = new Map([
+  ['1', [
+    {repository: 'hcv-volume-1-part-1', start: 1, chapters: [
+      'introduction-to-physics', 'physics-and-mathematics', 'rest-and-motion-kinematics', 'the-forces',
+      'newtons-laws-of-motion', 'friction', 'circular-motion', 'work-and-energy',
+      'centre-of-mass-linear-momentum-collision', 'rotational-mechanics', 'gravitation'
+    ]},
+    {repository: 'hcv-volume-1-part-2', start: 12, chapters: [
+      'simple-harmonic-motion', 'fluid-mechanics', 'some-mechanical-properties-of-matter',
+      'wave-motion-and-waves-on-a-string', 'sound-waves', 'light-waves', 'geometrical-optics',
+      'optical-instruments', 'dispersion-and-spectra', 'speed-of-light', 'photometry'
+    ]}
+  ]],
+  ['2', [
+    {repository: 'hcv-volume-2-part-1', start: 23, chapters: [
+      'heat-and-temperature', 'kinetic-theory-of-gases', 'calorimetry', 'laws-of-thermodynamics',
+      'specific-heat-capacities-of-gases', 'heat-transfer', 'electric-field-and-potential', 'gauss-law',
+      'capacitors', 'electric-current-in-conductors', 'thermal-and-chemical-effects-of-electric-current',
+      'magnetic-field', 'magnetic-field-due-to-a-current'
+    ]},
+    {repository: 'hcv-volume-2-part-2', start: 36, chapters: [
+      'permanent-magnets', 'magnetic-properties-of-matter', 'electromagnetic-induction',
+      'alternating-current', 'electromagnetic-waves', 'electric-current-through-gases',
+      'photoelectric-effect-and-wave-particle-duality', 'bohr-model-and-physics-of-the-atom',
+      'x-rays', 'semiconductors-and-semiconductor-devices', 'the-nucleus', 'the-special-theory-of-relativity'
+    ]}
+  ]]
+]);
+const exerciseRepositories = [...pathfinderParts.values(), ...sbtVolumes.values(), ...[...hcvVolumes.values()].flat()]
+  .map(part => part.repository);
 const exercisePending = new Set(exerciseRepositories);
 const exerciseUnavailable = new Set();
 const exerciseCatalogs = new Map();
 const sbtExercises = [1, 2, 3].map(level => ['Level ' + level, 'level-' + level + '.pdf']);
+const hcvExercises = [
+  ['Short Answers', 'short-answers.pdf'],
+  ['Objective I', 'objective-1.pdf'],
+  ['Objective II', 'objective-2.pdf'],
+  ['Exercises', 'exercise.pdf']
+];
 let pathfinderPart = '';
 let sbtVolume = '';
 let sbtChapter = '';
+let hcvVolume = '';
+let hcvPart = '';
 
 function chapterFolder(slug, number) {
   return String(number).padStart(2, '0') + '-' + slug;
@@ -207,6 +257,13 @@ const sbtVolumeButtons = document.querySelector('#sbt-volumes');
 const sbtChapterControl = document.querySelector('#sbt-chapter-control');
 const sbtChapterSelect = document.querySelector('#sbt-chapter');
 const sbtLevels = document.querySelector('#sbt-levels');
+const hcvBrowser = document.querySelector('#hcv-browser');
+const hcvVolumeButtons = document.querySelector('#hcv-volumes');
+const hcvPartControl = document.querySelector('#hcv-part-control');
+const hcvPartButtons = document.querySelector('#hcv-parts');
+const hcvChapterControl = document.querySelector('#hcv-chapter-control');
+const hcvChapterSelect = document.querySelector('#hcv-chapter');
+const hcvResults = document.querySelector('#hcv-exercises');
 let selected = '';
 
 function add(parent, tag, content) {
@@ -295,11 +352,53 @@ function renderSbtBrowser() {
   const slug = volume.chapters[number - 1];
   renderExerciseChapter(sbtLevels, volume.repository, slug, number, sbtExercises);
 }
+function addHcvChoice(container, value, label, details, choose) {
+  const button = add(container, 'button', '');
+  button.type = 'button';
+  button.className = 'collection';
+  button.dataset.choice = value;
+  add(button, 'strong', label);
+  add(button, 'small', details);
+  button.addEventListener('click', () => choose(value));
+}
+function chooseHcvPart(value) {
+  hcvPart = value;
+  const {chapters, start} = hcvVolumes.get(hcvVolume)[Number(value) - 1];
+  populateChapterOptions(hcvChapterSelect, chapters, start);
+  render();
+}
+function chooseHcvVolume(value) {
+  hcvVolume = value;
+  hcvPart = '';
+  hcvPartButtons.replaceChildren();
+  for (const [index, {chapters, start}] of hcvVolumes.get(value).entries()) {
+    const part = String(index + 1);
+    addHcvChoice(hcvPartButtons, part, 'Part ' + part, 'Chapters ' + start + '–' + (start + chapters.length - 1), chooseHcvPart);
+  }
+  render();
+}
+function renderHcvBrowser() {
+  const part = hcvVolumes.get(hcvVolume)?.[Number(hcvPart) - 1];
+  status.textContent = part ? countLabel(part.chapters.length, 'chapter') : '';
+  hcvPartControl.hidden = !hcvVolume;
+  hcvChapterControl.hidden = !part;
+  for (const button of hcvVolumeButtons.querySelectorAll('button')) {
+    button.setAttribute('aria-pressed', String(button.dataset.choice === hcvVolume));
+  }
+  for (const button of hcvPartButtons.querySelectorAll('button')) {
+    button.setAttribute('aria-pressed', String(button.dataset.choice === hcvPart));
+  }
+  hcvResults.replaceChildren();
+  if (!part || !hcvChapterSelect.value) return;
+  const number = Number(hcvChapterSelect.value);
+  const slug = part.chapters[number - part.start];
+  renderExerciseChapter(hcvResults, part.repository, slug, number, hcvExercises);
+}
 function render() {
   for (const button of cards.querySelectorAll('button')) {
     const id = button.dataset.collection;
     button.setAttribute('aria-pressed', String(id === selected));
-    if (id === 'sbt') {
+    if (id === 'sbt' || id === 'hcv') {
       button.querySelector('small').textContent = 'Volumes 1 and 2';
       continue;
     }
@@ -314,14 +413,17 @@ function render() {
   title.textContent = collections.get(selected) || 'All solutions';
   const browsingSbt = selected === 'sbt';
   const browsingPathfinder = selected === 'pathfinder';
-  const browsingExercises = browsingSbt || browsingPathfinder;
+  const browsingHcv = selected === 'hcv';
+  const browsingExercises = browsingSbt || browsingPathfinder || browsingHcv;
   pathfinderBrowser.hidden = !browsingPathfinder;
   sbtBrowser.hidden = !browsingSbt;
+  hcvBrowser.hidden = !browsingHcv;
   searchControl.hidden = browsingExercises;
   results.hidden = browsingExercises;
   if (browsingExercises) {
     groupControl.hidden = true;
     if (browsingSbt) renderSbtBrowser();
+    else if (browsingHcv) renderHcvBrowser();
     else renderPathfinderBrowser();
     return;
   }
@@ -407,6 +509,10 @@ for (const [part, {chapters, start}] of pathfinderParts) {
   button.addEventListener('click', () => choosePathfinderPart(part));
 }
 pathfinderChapterSelect.addEventListener('change', render);
+for (const volume of hcvVolumes.keys()) {
+  addHcvChoice(hcvVolumeButtons, volume, 'Volume ' + volume, '2 parts', chooseHcvVolume);
+}
+hcvChapterSelect.addEventListener('change', render);
 search.addEventListener('input', render);
 group.addEventListener('change', render);
 render();

@@ -30,6 +30,13 @@ main{padding:clamp(1.5rem,5vw,3rem) 0 3rem}h1,h2,h3,p{margin:0 0 .5rem}h1{font-s
 <section aria-labelledby="results-title">
 <div class="results-head"><h2 id="results-title">All solutions</h2><span id="status" role="status"></span></div>
 <div id="group-control" class="group-select" hidden><label for="group">Chapter or exam session</label><select id="group"></select></div>
+<div id="pathfinder-browser" hidden>
+  <div class="group-select">
+    <label for="pathfinder-chapter">Choose a chapter</label>
+    <select id="pathfinder-chapter"></select>
+  </div>
+  <div id="pathfinder-exercises"></div>
+</div>
 <div id="sbt-browser" hidden>
   <h3>Choose a volume</h3>
   <div id="sbt-volumes" class="collections" role="group" aria-label="SBT volumes"></div>
@@ -63,7 +70,6 @@ const formatGroup = slug => slug.split('-').map(word => {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }).join(' ');
 const remoteRepositories = new Map([
-  ['pathfinder', 'pathfinder-solutions'],
   ['jee-advanced', 'jee-advanced-solutions'], ['jee-main', 'jee-main-solutions']
 ]);
 const pending = new Set(remoteRepositories.keys());
@@ -71,19 +77,6 @@ const unavailable = new Set();
 const solutions = [];
 const seen = new Set();
 const questionPath = /^([a-z0-9]+(?:-[a-z0-9]+)*)\/q(\d+)\.pdf$/i;
-
-const chapterPath = /^(0[1-9]|1[0-6])-([a-z0-9]+(?:-[a-z0-9]+)*)\.pdf$/i;
-
-function addChapter(collection, path, url) {
-  const match = chapterPath.exec(path);
-  if (!match) return;
-  const [, number, slug] = match;
-  const key = [collection, 'chapter', number].join('/');
-  if (seen.has(key)) return;
-  seen.add(key);
-  const group = number + ' · ' + formatGroup(slug.toLowerCase());
-  solutions.push({collection, group, chapter: Number(number), question: null, url});
-}
 
 function addSolution(collection, path, url) {
   const match = questionPath.exec(path);
@@ -107,6 +100,25 @@ for (const file of files) {
     addSolution(collection, group + '/' + name, path.slice('/physics/'.length));
   }
 }
+const pathfinderParts = [
+  {repository: 'pathfinder-chapters-01-08', start: 1, chapters: [
+    'kinematics', 'newtons-laws-of-motion', 'work-and-energy', 'impulse-momentum-and-centre-of-mass',
+    'rotational-motion', 'gravitation', 'fluid-mechanics', 'thermal-physics'
+  ]},
+  {repository: 'pathfinder-chapters-09-16', start: 9, chapters: [
+    'properties-of-matter', 'waves-and-oscillations', 'ray-and-wave-optics', 'electrostatics',
+    'current-electricity', 'magnetic-effects-of-current', 'emi-and-ac', 'modern-physics'
+  ]}
+];
+const pathfinderChapters = pathfinderParts.flatMap(part => part.chapters.map((slug, index) => ({
+  slug, number: part.start + index, repository: part.repository
+})));
+const pathfinderExercises = [
+  ['Multiple Choice Questions', 'mcq.pdf'],
+  ['Build-up Your Understanding', 'build-up.pdf'],
+  ['Check Your Understanding', 'check.pdf'],
+  ['Challenge Your Understanding', 'challenge.pdf']
+];
 const sbtVolumes = new Map([
   ['1', {repository: 'sbt-volume-1-solutions', chapters: [
     'basic-maths', 'kinematics', 'newtons-laws', 'work-power-and-energy', 'momentum-and-centre-of-mass',
@@ -121,10 +133,11 @@ const sbtVolumes = new Map([
     'nuclear-physics'
   ]}]
 ]);
-const sbtPending = new Set(sbtVolumes.keys());
-const sbtUnavailable = new Set();
-const sbtCatalogs = new Map();
-const levelNumbers = [1, 2, 3];
+const exerciseRepositories = [...pathfinderParts, ...sbtVolumes.values()].map(part => part.repository);
+const exercisePending = new Set(exerciseRepositories);
+const exerciseUnavailable = new Set();
+const exerciseCatalogs = new Map();
+const sbtExercises = [1, 2, 3].map(level => ['Level ' + level, 'level-' + level + '.pdf']);
 let sbtVolume = '';
 let sbtChapter = '';
 
@@ -154,8 +167,6 @@ async function loadCatalog(collection, repository) {
       const relativePath = path.slice(prefix.length);
       if (questionPath.test(relativePath)) {
         addSolution(collection, relativePath, new URL(path.slice(1), base).href);
-      } else if (collection === 'pathfinder' && chapterPath.test(relativePath)) {
-        addChapter(collection, relativePath, new URL(path.slice(1), base).href);
       }
     }
   } catch {
@@ -166,14 +177,14 @@ async function loadCatalog(collection, repository) {
     render();
   }
 }
-async function loadSbtLevels(volume, repository) {
+async function loadExerciseCatalog(repository) {
   try {
     const paths = await readCatalog(repositoryUrl(repository));
-    sbtCatalogs.set(volume, new Set(paths));
+    exerciseCatalogs.set(repository, new Set(paths));
   } catch {
-    sbtUnavailable.add(volume);
+    exerciseUnavailable.add(repository);
   } finally {
-    sbtPending.delete(volume);
+    exercisePending.delete(repository);
     render();
   }
 }
@@ -186,6 +197,9 @@ const groupControl = document.querySelector('#group-control');
 const results = document.querySelector('#results');
 const title = document.querySelector('#results-title');
 const status = document.querySelector('#status');
+const pathfinderBrowser = document.querySelector('#pathfinder-browser');
+const pathfinderChapterSelect = document.querySelector('#pathfinder-chapter');
+const pathfinderResults = document.querySelector('#pathfinder-exercises');
 const sbtBrowser = document.querySelector('#sbt-browser');
 const sbtVolumeButtons = document.querySelector('#sbt-volumes');
 const sbtChapterControl = document.querySelector('#sbt-chapter-control');
@@ -206,6 +220,38 @@ function addPdfDownload(parent, url, label) {
   download.setAttribute('aria-label', 'Download ' + label + ' PDF');
 }
 function countLabel(count, label) { return count + ' ' + label + (count === 1 ? '' : 's'); }
+function renderExerciseChapter(container, repository, slug, number, exercises) {
+  add(container, 'h3', 'Chapter ' + number + ' · ' + formatGroup(slug));
+  const list = add(container, 'ul', '');
+  list.className = 'solution-list';
+  const catalog = exerciseCatalogs.get(repository);
+  const base = repositoryUrl(repository);
+  const folder = 'solutions/' + chapterFolder(slug, number) + '/';
+  for (const [label, filename] of exercises) {
+    const item = add(list, 'li', '');
+    add(item, 'strong', label);
+    const path = folder + filename;
+    if (catalog?.has('/' + path)) {
+      const url = new URL(path, base).href;
+      const actions = add(item, 'div', '');
+      actions.className = 'pdf-actions';
+      const view = add(actions, 'a', 'View PDF');
+      view.href = url;
+      view.setAttribute('aria-label', 'View ' + label + ' PDF');
+      addPdfDownload(actions, url, label);
+    } else {
+      const message = exercisePending.has(repository) ? 'Checking…' :
+        exerciseUnavailable.has(repository) ? 'Temporarily unavailable' : 'Coming soon';
+      add(item, 'small', message);
+    }
+  }
+}
+function renderPathfinderBrowser() {
+  status.textContent = countLabel(pathfinderChapters.length, 'chapter');
+  pathfinderResults.replaceChildren();
+  const chapter = pathfinderChapters[Number(pathfinderChapterSelect.value) - 1];
+  if (chapter) renderExerciseChapter(pathfinderResults, chapter.repository, chapter.slug, chapter.number, pathfinderExercises);
+}
 function chooseSbtVolume(volume) {
   sbtVolume = volume;
   sbtChapter = '';
@@ -228,31 +274,7 @@ function renderSbtBrowser() {
 
   const number = Number(sbtChapter);
   const slug = volume.chapters[number - 1];
-  const chapterTitle = formatGroup(slug);
-  add(sbtLevels, 'h3', 'Chapter ' + number + ' · ' + chapterTitle);
-  const list = add(sbtLevels, 'ul', '');
-  list.className = 'solution-list';
-  const catalog = sbtCatalogs.get(sbtVolume);
-  const base = repositoryUrl(volume.repository);
-  for (const level of levelNumbers) {
-    const item = add(list, 'li', '');
-    const label = 'Level ' + level;
-    add(item, 'strong', label);
-    const path = 'solutions/' + chapterFolder(slug, number) + '/level-' + level + '.pdf';
-    if (catalog?.has('/' + path)) {
-      const url = new URL(path, base).href;
-      const actions = add(item, 'div', '');
-      actions.className = 'pdf-actions';
-      const view = add(actions, 'a', 'View PDF');
-      view.href = url;
-      view.setAttribute('aria-label', 'View ' + label + ' PDF');
-      addPdfDownload(actions, url, label);
-    } else {
-      const message = sbtPending.has(sbtVolume) ? 'Checking…' :
-        sbtUnavailable.has(sbtVolume) ? 'Temporarily unavailable' : 'Coming soon';
-      add(item, 'small', message);
-    }
-  }
+  renderExerciseChapter(sbtLevels, volume.repository, slug, number, sbtExercises);
 }
 function render() {
   for (const button of cards.querySelectorAll('button')) {
@@ -262,18 +284,26 @@ function render() {
       button.querySelector('small').textContent = 'Volumes 1 and 2';
       continue;
     }
+    if (id === 'pathfinder') {
+      button.querySelector('small').textContent = countLabel(pathfinderChapters.length, 'chapter');
+      continue;
+    }
     const count = countLabel(solutions.filter(solution => solution.collection === id).length, 'solution');
     button.querySelector('small').textContent = pending.has(id) ? 'Loading…' :
       unavailable.has(id) ? count + ' · index unavailable' : count;
   }
   title.textContent = collections.get(selected) || 'All solutions';
   const browsingSbt = selected === 'sbt';
+  const browsingPathfinder = selected === 'pathfinder';
+  const browsingExercises = browsingSbt || browsingPathfinder;
+  pathfinderBrowser.hidden = !browsingPathfinder;
   sbtBrowser.hidden = !browsingSbt;
-  searchControl.hidden = browsingSbt;
-  results.hidden = browsingSbt;
-  if (browsingSbt) {
+  searchControl.hidden = browsingExercises;
+  results.hidden = browsingExercises;
+  if (browsingExercises) {
     groupControl.hidden = true;
-    renderSbtBrowser();
+    if (browsingSbt) renderSbtBrowser();
+    else renderPathfinderBrowser();
     return;
   }
   const inCollection = solutions.filter(solution => !selected || selected === solution.collection);
@@ -317,7 +347,7 @@ function render() {
       lists.set(label, list);
     }
     const item = add(lists.get(label), 'li', '');
-    const documentLabel = solution.chapter ? 'Chapter ' + solution.chapter : 'Question ' + solution.question;
+    const documentLabel = 'Question ' + solution.question;
     add(item, 'a', documentLabel + ' (PDF)').href = solution.url;
     addPdfDownload(item, solution.url, documentLabel.toLowerCase());
   }
@@ -348,11 +378,16 @@ sbtChapterSelect.addEventListener('change', () => {
   sbtChapter = sbtChapterSelect.value;
   render();
 });
+pathfinderChapterSelect.append(new Option('Select a chapter', ''));
+for (const {slug, number} of pathfinderChapters) {
+  pathfinderChapterSelect.append(new Option(number + ' · ' + formatGroup(slug), String(number)));
+}
+pathfinderChapterSelect.addEventListener('change', render);
 search.addEventListener('input', render);
 group.addEventListener('change', render);
 render();
 for (const [collection, repository] of remoteRepositories) loadCatalog(collection, repository);
-for (const [volume, {repository}] of sbtVolumes) loadSbtLevels(volume, repository);
+for (const repository of exerciseRepositories) loadExerciseCatalog(repository);
 </script>
 </body>
 </html>

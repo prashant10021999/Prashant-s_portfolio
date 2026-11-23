@@ -62,7 +62,7 @@ const formatGroup = slug => slug.split('-').map(word => {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }).join(' ');
 const remoteRepositories = new Map([
-  ['pathfinder', 'pathfinder-solutions'], ['sbt', 'sbt-solutions'],
+  ['pathfinder', 'pathfinder-solutions'],
   ['jee-advanced', 'jee-advanced-solutions'], ['jee-main', 'jee-main-solutions']
 ]);
 const pending = new Set(remoteRepositories.keys());
@@ -73,18 +73,15 @@ const questionPath = /^([a-z0-9]+(?:-[a-z0-9]+)*)\/q(\d+)\.pdf$/i;
 
 const chapterPath = /^(0[1-9]|1[0-6])-([a-z0-9]+(?:-[a-z0-9]+)*)\.pdf$/i;
 
-const sbtChapterPath = /^vol-([12])\/(.+)$/;
-
-function addChapter(collection, path, url, volume = '') {
+function addChapter(collection, path, url) {
   const match = chapterPath.exec(path);
   if (!match) return;
   const [, number, slug] = match;
-  const key = [collection, 'chapter', volume, number].join('/');
+  const key = [collection, 'chapter', number].join('/');
   if (seen.has(key)) return;
   seen.add(key);
-  const chapterTitle = number + ' · ' + formatGroup(slug.toLowerCase());
-  const group = volume ? 'Volume ' + volume + ' · ' + chapterTitle : chapterTitle;
-  solutions.push({collection, group, volume, chapter: Number(number), question: null, url});
+  const group = number + ' · ' + formatGroup(slug.toLowerCase());
+  solutions.push({collection, group, chapter: Number(number), question: null, url});
 }
 
 function addSolution(collection, path, url) {
@@ -158,11 +155,6 @@ async function loadCatalog(collection, repository) {
         addSolution(collection, relativePath, new URL(path.slice(1), base).href);
       } else if (collection === 'pathfinder' && chapterPath.test(relativePath)) {
         addChapter(collection, relativePath, new URL(path.slice(1), base).href);
-      } else if (collection === 'sbt') {
-        const chapter = sbtChapterPath.exec(relativePath);
-        if (chapter && chapterPath.test(chapter[2])) {
-          addChapter(collection, chapter[2], new URL(path.slice(1), base).href, chapter[1]);
-        }
       }
     }
   } catch {
@@ -248,12 +240,6 @@ function renderSbtBrowser() {
       add(item, 'small', message);
     }
   }
-  const workbook = solutions.find(solution => solution.collection === 'sbt' &&
-    solution.volume === sbtVolume && solution.chapter === number);
-  if (workbook) {
-    const note = add(sbtLevels, 'p', '');
-    add(note, 'a', 'Open chapter workbook or placeholder').href = workbook.url;
-  }
 }
 function render() {
   for (const button of cards.querySelectorAll('button')) {
@@ -318,8 +304,7 @@ function render() {
       lists.set(label, list);
     }
     const item = add(lists.get(label), 'li', '');
-    let documentLabel = solution.chapter ? 'Chapter ' + solution.chapter : 'Question ' + solution.question;
-    if (solution.volume) documentLabel = 'Volume ' + solution.volume + ', ' + documentLabel;
+    const documentLabel = solution.chapter ? 'Chapter ' + solution.chapter : 'Question ' + solution.question;
     add(item, 'a', documentLabel + ' (PDF)').href = solution.url;
     const download = add(item, 'a', 'Download PDF');
     download.href = solution.url;

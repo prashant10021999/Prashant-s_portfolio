@@ -24,12 +24,20 @@ main{padding:clamp(1.5rem,5vw,3rem) 0 3rem}h1,h2,h3,p{margin:0 0 .5rem}h1{font-s
 <main>
 <h1>Physics Solutions</h1>
 <p>Find worked solutions by chapter, exam session, or question number.</p>
-<div class="controls"><label for="search">Search solutions</label><input id="search" type="search" placeholder="Try kinematics, 2024, or Q12" autocomplete="off"></div>
+<div id="solution-search" class="controls"><label for="search">Search solutions</label><input id="search" type="search" placeholder="Try kinematics, 2024, or Q12" autocomplete="off"></div>
 <section aria-labelledby="collections-title"><h2 id="collections-title">Collections</h2><div id="collections" class="collections"></div></section>
 <section aria-labelledby="results-title">
 <div class="results-head"><h2 id="results-title">All solutions</h2><span id="status" role="status"></span></div>
 <div id="group-control" class="group-select" hidden><label for="group">Chapter or exam session</label><select id="group"></select></div>
-<p id="sbt-note" hidden>Chapters marked “Handwritten solution coming soon” in the PDF are placeholders.</p>
+<div id="sbt-browser" hidden>
+  <h3>Choose a volume</h3>
+  <div id="sbt-volumes" class="collections" role="group" aria-label="SBT volumes"></div>
+  <div id="sbt-chapter-control" class="group-select" hidden>
+    <label for="sbt-chapter">Choose a chapter</label>
+    <select id="sbt-chapter"></select>
+  </div>
+  <div id="sbt-levels"></div>
+</div>
 <div id="results"></div>
 <noscript><p>Enable JavaScript to browse the solutions.</p></noscript>
 </section>
@@ -101,17 +109,48 @@ for (const file of files) {
     addSolution(collection, group + '/' + name, path.slice('/physics/'.length));
   }
 }
+const sbtVolumes = new Map([
+  ['1', {repository: 'sbt-volume-1-solutions', chapters: [
+    'basic-maths', 'kinematics', 'newtons-laws', 'work-power-and-energy', 'momentum-and-centre-of-mass',
+    'rotational-motion', 'gravitation', 'fluids', 'surface-tension', 'viscosity', 'elasticity',
+    'simple-harmonic-motion', 'wave-motion'
+  ]}],
+  ['2', {repository: 'sbt-volume-2-solutions', chapters: [
+    'temperature-and-thermal-expansion', 'calorimetry', 'kinetic-theory-of-gases-and-gas-laws',
+    'first-law-of-thermodynamics', 'heat-transfer', 'electrostatics', 'capacitor', 'current-electricity',
+    'motion-of-charge-in-electromagnetic-field', 'magnetic-effect-of-current', 'electromagnetic-induction',
+    'alternating-current', 'geometrical-optics', 'wave-optics', 'wave-particle-duality-and-atomic-physics',
+    'nuclear-physics'
+  ]}]
+]);
+const sbtPending = new Set(sbtVolumes.keys());
+const sbtUnavailable = new Set();
+const sbtCatalogs = new Map();
+const levelNumbers = [1, 2, 3];
+let sbtVolume = '';
+let sbtChapter = '';
+
+function chapterFolder(slug, number) {
+  return String(number).padStart(2, '0') + '-' + slug;
+}
 function sortSolutions() {
   solutions.sort((a, b) => collator.compare(a.group, b.group) || a.question - b.question);
 }
+function repositoryUrl(repository) {
+  return new URL('../../' + repository + '/', window.location.href);
+}
+async function readCatalog(base) {
+  const response = await fetch(new URL('solutions/index.json', base));
+  if (!response.ok) throw Error('Catalog unavailable');
+  const paths = await response.json();
+  if (!Array.isArray(paths)) throw Error('Invalid catalog');
+  return paths;
+}
 async function loadCatalog(collection, repository) {
-  const base = new URL('../../' + repository + '/', window.location.href);
+  const base = repositoryUrl(repository);
   const prefix = '/solutions/';
   try {
-    const response = await fetch(new URL('solutions/index.json', base));
-    if (!response.ok) throw Error('Catalog unavailable');
-    const paths = await response.json();
-    if (!Array.isArray(paths)) throw Error('Invalid catalog');
+    const paths = await readCatalog(base);
     for (const path of paths) {
       if (typeof path !== 'string' || !path.startsWith(prefix)) continue;
       const relativePath = path.slice(prefix.length);
@@ -134,15 +173,31 @@ async function loadCatalog(collection, repository) {
     render();
   }
 }
+async function loadSbtLevels(volume, repository) {
+  try {
+    const paths = await readCatalog(repositoryUrl(repository));
+    sbtCatalogs.set(volume, new Set(paths));
+  } catch {
+    sbtUnavailable.add(volume);
+  } finally {
+    sbtPending.delete(volume);
+    render();
+  }
+}
 sortSolutions();
 const search = document.querySelector('#search');
+const searchControl = document.querySelector('#solution-search');
 const cards = document.querySelector('#collections');
 const group = document.querySelector('#group');
 const groupControl = document.querySelector('#group-control');
 const results = document.querySelector('#results');
 const title = document.querySelector('#results-title');
 const status = document.querySelector('#status');
-const sbtNote = document.querySelector('#sbt-note');
+const sbtBrowser = document.querySelector('#sbt-browser');
+const sbtVolumeButtons = document.querySelector('#sbt-volumes');
+const sbtChapterControl = document.querySelector('#sbt-chapter-control');
+const sbtChapterSelect = document.querySelector('#sbt-chapter');
+const sbtLevels = document.querySelector('#sbt-levels');
 let selected = '';
 
 function add(parent, tag, content) {
@@ -152,16 +207,76 @@ function add(parent, tag, content) {
   return element;
 }
 function countLabel(count, label) { return count + ' ' + label + (count === 1 ? '' : 's'); }
+function chooseSbtVolume(volume) {
+  sbtVolume = volume;
+  sbtChapter = '';
+  const {chapters} = sbtVolumes.get(volume);
+  sbtChapterSelect.replaceChildren(new Option('Select a chapter', ''));
+  for (const [index, slug] of chapters.entries()) {
+    sbtChapterSelect.append(new Option((index + 1) + ' · ' + formatGroup(slug), String(index + 1)));
+  }
+  render();
+}
+function renderSbtBrowser() {
+  const volume = sbtVolumes.get(sbtVolume);
+  status.textContent = volume ? countLabel(volume.chapters.length, 'chapter') : '';
+  for (const button of sbtVolumeButtons.querySelectorAll('button')) {
+    button.setAttribute('aria-pressed', String(button.dataset.volume === sbtVolume));
+  }
+  sbtChapterControl.hidden = !volume;
+  sbtLevels.replaceChildren();
+  if (!volume || !sbtChapter) return;
+
+  const number = Number(sbtChapter);
+  const slug = volume.chapters[number - 1];
+  const chapterTitle = formatGroup(slug);
+  add(sbtLevels, 'h3', 'Chapter ' + number + ' · ' + chapterTitle);
+  const list = add(sbtLevels, 'ul', '');
+  list.className = 'solution-list';
+  const catalog = sbtCatalogs.get(sbtVolume);
+  const base = repositoryUrl(volume.repository);
+  for (const level of levelNumbers) {
+    const item = add(list, 'li', '');
+    const label = 'Level ' + level;
+    add(item, 'strong', label);
+    const path = 'solutions/' + chapterFolder(slug, number) + '/level-' + level + '.pdf';
+    if (catalog?.has('/' + path)) {
+      add(item, 'a', 'Open ' + label + ' PDF').href = new URL(path, base).href;
+    } else {
+      const message = sbtPending.has(sbtVolume) ? 'Checking…' :
+        sbtUnavailable.has(sbtVolume) ? 'Temporarily unavailable' : 'Coming soon';
+      add(item, 'small', message);
+    }
+  }
+  const workbook = solutions.find(solution => solution.collection === 'sbt' &&
+    solution.volume === sbtVolume && solution.chapter === number);
+  if (workbook) {
+    const note = add(sbtLevels, 'p', '');
+    add(note, 'a', 'Open chapter workbook or placeholder').href = workbook.url;
+  }
+}
 function render() {
   for (const button of cards.querySelectorAll('button')) {
     const id = button.dataset.collection;
     button.setAttribute('aria-pressed', String(id === selected));
-    const count = countLabel(solutions.filter(solution => solution.collection === id).length, id === 'sbt' ? 'PDF' : 'solution');
+    if (id === 'sbt') {
+      button.querySelector('small').textContent = 'Volumes 1 and 2';
+      continue;
+    }
+    const count = countLabel(solutions.filter(solution => solution.collection === id).length, 'solution');
     button.querySelector('small').textContent = pending.has(id) ? 'Loading…' :
       unavailable.has(id) ? count + ' · index unavailable' : count;
   }
   title.textContent = collections.get(selected) || 'All solutions';
-  sbtNote.hidden = selected !== 'sbt';
+  const browsingSbt = selected === 'sbt';
+  sbtBrowser.hidden = !browsingSbt;
+  searchControl.hidden = browsingSbt;
+  results.hidden = browsingSbt;
+  if (browsingSbt) {
+    groupControl.hidden = true;
+    renderSbtBrowser();
+    return;
+  }
   const inCollection = solutions.filter(solution => !selected || selected === solution.collection);
   const previousGroup = group.value;
   const groups = [...new Set(inCollection.map(solution => solution.group))];
@@ -182,7 +297,7 @@ function render() {
   results.replaceChildren();
   const loading = selected ? pending.has(selected) : pending.size > 0;
   const missing = selected ? unavailable.has(selected) : unavailable.size > 0;
-  status.textContent = loading ? 'Loading solutions…' : countLabel(matches.length, !selected || selected === 'sbt' ? 'PDF' : 'solution') +
+  status.textContent = loading ? 'Loading solutions…' : countLabel(matches.length, selected ? 'solution' : 'PDF') +
     (missing ? ' · some results may be missing' : '');
   if (!matches.length) {
     const message = loading ? 'Checking for published solutions…' : missing ?
@@ -225,10 +340,24 @@ for (const [id, label] of collections) {
     render();
   });
 }
+for (const [volume, {chapters}] of sbtVolumes) {
+  const button = add(sbtVolumeButtons, 'button', '');
+  button.type = 'button';
+  button.className = 'collection';
+  button.dataset.volume = volume;
+  add(button, 'strong', 'Volume ' + volume);
+  add(button, 'small', countLabel(chapters.length, 'chapter'));
+  button.addEventListener('click', () => chooseSbtVolume(volume));
+}
+sbtChapterSelect.addEventListener('change', () => {
+  sbtChapter = sbtChapterSelect.value;
+  render();
+});
 search.addEventListener('input', render);
 group.addEventListener('change', render);
 render();
 for (const [collection, repository] of remoteRepositories) loadCatalog(collection, repository);
+for (const [volume, {repository}] of sbtVolumes) loadSbtLevels(volume, repository);
 </script>
 </body>
 </html>

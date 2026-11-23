@@ -29,6 +29,7 @@ main{padding:clamp(1.5rem,5vw,3rem) 0 3rem}h1,h2,h3,p{margin:0 0 .5rem}h1{font-s
 <section aria-labelledby="results-title">
 <div class="results-head"><h2 id="results-title">All solutions</h2><span id="status" role="status"></span></div>
 <div id="group-control" class="group-select" hidden><label for="group">Chapter or exam session</label><select id="group"></select></div>
+<p id="sbt-note" hidden>Chapters marked “Handwritten solution coming soon” in the PDF are placeholders.</p>
 <div id="results"></div>
 <noscript><p>Enable JavaScript to browse the solutions.</p></noscript>
 </section>
@@ -64,15 +65,18 @@ const questionPath = /^([a-z0-9]+(?:-[a-z0-9]+)*)\/q(\d+)\.pdf$/i;
 
 const chapterPath = /^(0[1-9]|1[0-6])-([a-z0-9]+(?:-[a-z0-9]+)*)\.pdf$/i;
 
-function addChapter(path, url) {
+const sbtChapterPath = /^vol-([12])\/(.+)$/;
+
+function addChapter(collection, path, url, volume = '') {
   const match = chapterPath.exec(path);
   if (!match) return;
   const [, number, slug] = match;
-  const key = 'pathfinder/chapter/' + number;
+  const key = [collection, 'chapter', volume, number].join('/');
   if (seen.has(key)) return;
   seen.add(key);
-  const group = number + ' · ' + formatGroup(slug.toLowerCase());
-  solutions.push({collection: 'pathfinder', group, chapter: Number(number), question: null, url});
+  const chapterTitle = number + ' · ' + formatGroup(slug.toLowerCase());
+  const group = volume ? 'Volume ' + volume + ' · ' + chapterTitle : chapterTitle;
+  solutions.push({collection, group, volume, chapter: Number(number), question: null, url});
 }
 
 function addSolution(collection, path, url) {
@@ -114,7 +118,12 @@ async function loadCatalog(collection, repository) {
       if (questionPath.test(relativePath)) {
         addSolution(collection, relativePath, new URL(path.slice(1), base).href);
       } else if (collection === 'pathfinder' && chapterPath.test(relativePath)) {
-        addChapter(relativePath, new URL(path.slice(1), base).href);
+        addChapter(collection, relativePath, new URL(path.slice(1), base).href);
+      } else if (collection === 'sbt') {
+        const chapter = sbtChapterPath.exec(relativePath);
+        if (chapter && chapterPath.test(chapter[2])) {
+          addChapter(collection, chapter[2], new URL(path.slice(1), base).href, chapter[1]);
+        }
       }
     }
   } catch {
@@ -133,6 +142,7 @@ const groupControl = document.querySelector('#group-control');
 const results = document.querySelector('#results');
 const title = document.querySelector('#results-title');
 const status = document.querySelector('#status');
+const sbtNote = document.querySelector('#sbt-note');
 let selected = '';
 
 function add(parent, tag, content) {
@@ -141,16 +151,17 @@ function add(parent, tag, content) {
   parent.append(element);
   return element;
 }
-function countLabel(count) { return count + (count === 1 ? ' solution' : ' solutions'); }
+function countLabel(count, label) { return count + ' ' + label + (count === 1 ? '' : 's'); }
 function render() {
   for (const button of cards.querySelectorAll('button')) {
     const id = button.dataset.collection;
     button.setAttribute('aria-pressed', String(id === selected));
-    const count = countLabel(solutions.filter(solution => solution.collection === id).length);
+    const count = countLabel(solutions.filter(solution => solution.collection === id).length, id === 'sbt' ? 'PDF' : 'solution');
     button.querySelector('small').textContent = pending.has(id) ? 'Loading…' :
       unavailable.has(id) ? count + ' · index unavailable' : count;
   }
   title.textContent = collections.get(selected) || 'All solutions';
+  sbtNote.hidden = selected !== 'sbt';
   const inCollection = solutions.filter(solution => !selected || selected === solution.collection);
   const previousGroup = group.value;
   const groups = [...new Set(inCollection.map(solution => solution.group))];
@@ -171,7 +182,7 @@ function render() {
   results.replaceChildren();
   const loading = selected ? pending.has(selected) : pending.size > 0;
   const missing = selected ? unavailable.has(selected) : unavailable.size > 0;
-  status.textContent = loading ? 'Loading solutions…' : countLabel(matches.length) +
+  status.textContent = loading ? 'Loading solutions…' : countLabel(matches.length, !selected || selected === 'sbt' ? 'PDF' : 'solution') +
     (missing ? ' · some results may be missing' : '');
   if (!matches.length) {
     const message = loading ? 'Checking for published solutions…' : missing ?
@@ -192,7 +203,8 @@ function render() {
       lists.set(label, list);
     }
     const item = add(lists.get(label), 'li', '');
-    const documentLabel = solution.chapter ? 'Chapter ' + solution.chapter : 'Question ' + solution.question;
+    let documentLabel = solution.chapter ? 'Chapter ' + solution.chapter : 'Question ' + solution.question;
+    if (solution.volume) documentLabel = 'Volume ' + solution.volume + ', ' + documentLabel;
     add(item, 'a', documentLabel + ' (PDF)').href = solution.url;
     const download = add(item, 'a', 'Download PDF');
     download.href = solution.url;

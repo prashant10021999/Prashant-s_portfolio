@@ -62,6 +62,19 @@ const solutions = [];
 const seen = new Set();
 const questionPath = /^([a-z0-9]+(?:-[a-z0-9]+)*)\/q(\d+)\.pdf$/i;
 
+const chapterPath = /^(0[1-9]|1[0-6])-([a-z0-9]+(?:-[a-z0-9]+)*)\.pdf$/i;
+
+function addChapter(path, url) {
+  const match = chapterPath.exec(path);
+  if (!match) return;
+  const [, number, slug] = match;
+  const key = 'pathfinder/chapter/' + number;
+  if (seen.has(key)) return;
+  seen.add(key);
+  const group = number + ' · ' + formatGroup(slug.toLowerCase());
+  solutions.push({collection: 'pathfinder', group, chapter: Number(number), question: null, url});
+}
+
 function addSolution(collection, path, url) {
   const match = questionPath.exec(path);
   if (!collections.has(collection) || !match) return;
@@ -96,8 +109,12 @@ async function loadCatalog(collection, repository) {
     const paths = await response.json();
     if (!Array.isArray(paths)) throw Error('Invalid catalog');
     for (const path of paths) {
-      if (typeof path === 'string' && path.startsWith(prefix) && questionPath.test(path.slice(prefix.length))) {
-        addSolution(collection, path.slice(prefix.length), new URL(path.slice(1), base).href);
+      if (typeof path !== 'string' || !path.startsWith(prefix)) continue;
+      const relativePath = path.slice(prefix.length);
+      if (questionPath.test(relativePath)) {
+        addSolution(collection, relativePath, new URL(path.slice(1), base).href);
+      } else if (collection === 'pathfinder' && chapterPath.test(relativePath)) {
+        addChapter(relativePath, new URL(path.slice(1), base).href);
       }
     }
   } catch {
@@ -175,11 +192,12 @@ function render() {
       lists.set(label, list);
     }
     const item = add(lists.get(label), 'li', '');
-    add(item, 'a', 'Question ' + solution.question + ' (PDF)').href = solution.url;
+    const documentLabel = solution.chapter ? 'Chapter ' + solution.chapter : 'Question ' + solution.question;
+    add(item, 'a', documentLabel + ' (PDF)').href = solution.url;
     const download = add(item, 'a', 'Download PDF');
     download.href = solution.url;
     download.download = '';
-    download.setAttribute('aria-label', 'Download question ' + solution.question + ' PDF');
+    download.setAttribute('aria-label', 'Download ' + documentLabel.toLowerCase() + ' PDF');
   }
 }
 for (const [id, label] of collections) {

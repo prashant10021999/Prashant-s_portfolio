@@ -31,7 +31,9 @@ main{padding:clamp(1.5rem,5vw,3rem) 0 3rem}h1,h2,h3,p{margin:0 0 .5rem}h1{font-s
 <div class="results-head"><h2 id="results-title">All solutions</h2><span id="status" role="status"></span></div>
 <div id="group-control" class="group-select" hidden><label for="group">Chapter or exam session</label><select id="group"></select></div>
 <div id="pathfinder-browser" hidden>
-  <div class="group-select">
+  <h3>Choose a part</h3>
+  <div id="pathfinder-parts" class="collections" role="group" aria-label="Pathfinder parts"></div>
+  <div id="pathfinder-chapter-control" class="group-select" hidden>
     <label for="pathfinder-chapter">Choose a chapter</label>
     <select id="pathfinder-chapter"></select>
   </div>
@@ -100,19 +102,16 @@ for (const file of files) {
     addSolution(collection, group + '/' + name, path.slice('/physics/'.length));
   }
 }
-const pathfinderParts = [
-  {repository: 'pathfinder-chapters-01-08', start: 1, chapters: [
+const pathfinderParts = new Map([
+  ['1', {repository: 'pathfinder-1', start: 1, chapters: [
     'kinematics', 'newtons-laws-of-motion', 'work-and-energy', 'impulse-momentum-and-centre-of-mass',
     'rotational-motion', 'gravitation', 'fluid-mechanics', 'thermal-physics'
-  ]},
-  {repository: 'pathfinder-chapters-09-16', start: 9, chapters: [
+  ]}],
+  ['2', {repository: 'pathfinder-2', start: 9, chapters: [
     'properties-of-matter', 'waves-and-oscillations', 'ray-and-wave-optics', 'electrostatics',
     'current-electricity', 'magnetic-effects-of-current', 'emi-and-ac', 'modern-physics'
-  ]}
-];
-const pathfinderChapters = pathfinderParts.flatMap(part => part.chapters.map((slug, index) => ({
-  slug, number: part.start + index, repository: part.repository
-})));
+  ]}]
+]);
 const pathfinderExercises = [
   ['Multiple Choice Questions', 'mcq.pdf'],
   ['Build-up Your Understanding', 'build-up.pdf'],
@@ -133,11 +132,12 @@ const sbtVolumes = new Map([
     'nuclear-physics'
   ]}]
 ]);
-const exerciseRepositories = [...pathfinderParts, ...sbtVolumes.values()].map(part => part.repository);
+const exerciseRepositories = [...pathfinderParts.values(), ...sbtVolumes.values()].map(part => part.repository);
 const exercisePending = new Set(exerciseRepositories);
 const exerciseUnavailable = new Set();
 const exerciseCatalogs = new Map();
 const sbtExercises = [1, 2, 3].map(level => ['Level ' + level, 'level-' + level + '.pdf']);
+let pathfinderPart = '';
 let sbtVolume = '';
 let sbtChapter = '';
 
@@ -198,6 +198,8 @@ const results = document.querySelector('#results');
 const title = document.querySelector('#results-title');
 const status = document.querySelector('#status');
 const pathfinderBrowser = document.querySelector('#pathfinder-browser');
+const pathfinderPartButtons = document.querySelector('#pathfinder-parts');
+const pathfinderChapterControl = document.querySelector('#pathfinder-chapter-control');
 const pathfinderChapterSelect = document.querySelector('#pathfinder-chapter');
 const pathfinderResults = document.querySelector('#pathfinder-exercises');
 const sbtBrowser = document.querySelector('#sbt-browser');
@@ -246,20 +248,37 @@ function renderExerciseChapter(container, repository, slug, number, exercises) {
     }
   }
 }
+function populateChapterOptions(select, chapters, start = 1) {
+  select.replaceChildren(new Option('Select a chapter', ''));
+  for (const [index, slug] of chapters.entries()) {
+    const chapter = start + index;
+    select.append(new Option(chapter + ' · ' + formatGroup(slug), String(chapter)));
+  }
+}
+function choosePathfinderPart(part) {
+  pathfinderPart = part;
+  const {chapters, start} = pathfinderParts.get(part);
+  populateChapterOptions(pathfinderChapterSelect, chapters, start);
+  render();
+}
 function renderPathfinderBrowser() {
-  status.textContent = countLabel(pathfinderChapters.length, 'chapter');
+  const part = pathfinderParts.get(pathfinderPart);
+  status.textContent = part ? countLabel(part.chapters.length, 'chapter') : '';
+  for (const button of pathfinderPartButtons.querySelectorAll('button')) {
+    button.setAttribute('aria-pressed', String(button.dataset.part === pathfinderPart));
+  }
+  pathfinderChapterControl.hidden = !part;
   pathfinderResults.replaceChildren();
-  const chapter = pathfinderChapters[Number(pathfinderChapterSelect.value) - 1];
-  if (chapter) renderExerciseChapter(pathfinderResults, chapter.repository, chapter.slug, chapter.number, pathfinderExercises);
+  if (!part || !pathfinderChapterSelect.value) return;
+  const number = Number(pathfinderChapterSelect.value);
+  const slug = part.chapters[number - part.start];
+  renderExerciseChapter(pathfinderResults, part.repository, slug, number, pathfinderExercises);
 }
 function chooseSbtVolume(volume) {
   sbtVolume = volume;
   sbtChapter = '';
   const {chapters} = sbtVolumes.get(volume);
-  sbtChapterSelect.replaceChildren(new Option('Select a chapter', ''));
-  for (const [index, slug] of chapters.entries()) {
-    sbtChapterSelect.append(new Option((index + 1) + ' · ' + formatGroup(slug), String(index + 1)));
-  }
+  populateChapterOptions(sbtChapterSelect, chapters);
   render();
 }
 function renderSbtBrowser() {
@@ -285,7 +304,7 @@ function render() {
       continue;
     }
     if (id === 'pathfinder') {
-      button.querySelector('small').textContent = countLabel(pathfinderChapters.length, 'chapter');
+      button.querySelector('small').textContent = 'Parts 1 and 2';
       continue;
     }
     const count = countLabel(solutions.filter(solution => solution.collection === id).length, 'solution');
@@ -378,9 +397,14 @@ sbtChapterSelect.addEventListener('change', () => {
   sbtChapter = sbtChapterSelect.value;
   render();
 });
-pathfinderChapterSelect.append(new Option('Select a chapter', ''));
-for (const {slug, number} of pathfinderChapters) {
-  pathfinderChapterSelect.append(new Option(number + ' · ' + formatGroup(slug), String(number)));
+for (const [part, {chapters, start}] of pathfinderParts) {
+  const button = add(pathfinderPartButtons, 'button', '');
+  button.type = 'button';
+  button.className = 'collection';
+  button.dataset.part = part;
+  add(button, 'strong', 'Pathfinder ' + part);
+  add(button, 'small', 'Chapters ' + start + '–' + (start + chapters.length - 1));
+  button.addEventListener('click', () => choosePathfinderPart(part));
 }
 pathfinderChapterSelect.addEventListener('change', render);
 search.addEventListener('input', render);

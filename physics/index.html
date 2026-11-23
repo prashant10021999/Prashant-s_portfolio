@@ -16,6 +16,7 @@ a{color:var(--blue);text-underline-offset:.2em}nav a{font-weight:650}
 main{padding:clamp(1.5rem,5vw,3rem) 0 3rem}h1,h2,h3,p{margin:0 0 .5rem}h1{font-size:clamp(2.2rem,6vw,3.6rem);letter-spacing:-.045em;line-height:1.12}h2{font-size:1.35rem}h3{font-size:1.05rem}p,small{color:var(--muted)}
 .controls{margin:1.4rem 0 1.75rem}label{display:block;font-weight:650}input,select,button{font:inherit;color:inherit}input,select{max-width:100%;width:32rem;border:1px solid #8197ae;border-radius:.55rem;background:#fff;padding:.55rem .75rem}select{width:auto;min-width:12rem}button{cursor:pointer}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #1669ba;outline-offset:3px}
 .collections{display:grid;grid-template-columns:repeat(3,1fr);gap:.65rem;margin:.75rem 0 1.4rem}.collection{background:#fff;border:1px solid var(--edge);border-radius:.65rem;text-align:left;padding:.7rem .85rem;min-height:4.4rem}.collection strong,.collection small{display:block}.collection:hover,.collection[aria-pressed=true]{border-color:var(--blue)}.collection[aria-pressed=true]{background:#e5f0fc}.results-head{display:flex;align-items:baseline;justify-content:space-between;gap:.7rem;flex-wrap:wrap}.group{margin:1rem 0}.solution-list{list-style:none;padding:0;margin:.4rem 0}.solution-list li,.empty{background:#fff;border:1px solid var(--edge);border-radius:.55rem;padding:.7rem .85rem;margin:.45rem 0}.solution-list li{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;flex-wrap:wrap}.solution-list a:first-child{font-weight:650}.group-select{margin:.7rem 0 1rem}[hidden]{display:none!important}
+.pdf-actions{display:flex;gap:.5rem 1rem;flex-wrap:wrap}
 @media(max-width:690px){.collections{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:365px){.collections{grid-template-columns:1fr}}
 </style>
 </head>
@@ -198,6 +199,12 @@ function add(parent, tag, content) {
   parent.append(element);
   return element;
 }
+function addPdfDownload(parent, url, label) {
+  const download = add(parent, 'a', 'Download PDF');
+  download.href = url;
+  download.download = '';
+  download.setAttribute('aria-label', 'Download ' + label + ' PDF');
+}
 function countLabel(count, label) { return count + ' ' + label + (count === 1 ? '' : 's'); }
 function chooseSbtVolume(volume) {
   sbtVolume = volume;
@@ -233,7 +240,13 @@ function renderSbtBrowser() {
     add(item, 'strong', label);
     const path = 'solutions/' + chapterFolder(slug, number) + '/level-' + level + '.pdf';
     if (catalog?.has('/' + path)) {
-      add(item, 'a', 'Open ' + label + ' PDF').href = new URL(path, base).href;
+      const url = new URL(path, base).href;
+      const actions = add(item, 'div', '');
+      actions.className = 'pdf-actions';
+      const view = add(actions, 'a', 'View PDF');
+      view.href = url;
+      view.setAttribute('aria-label', 'View ' + label + ' PDF');
+      addPdfDownload(actions, url, label);
     } else {
       const message = sbtPending.has(sbtVolume) ? 'Checking…' :
         sbtUnavailable.has(sbtVolume) ? 'Temporarily unavailable' : 'Coming soon';
@@ -306,10 +319,7 @@ function render() {
     const item = add(lists.get(label), 'li', '');
     const documentLabel = solution.chapter ? 'Chapter ' + solution.chapter : 'Question ' + solution.question;
     add(item, 'a', documentLabel + ' (PDF)').href = solution.url;
-    const download = add(item, 'a', 'Download PDF');
-    download.href = solution.url;
-    download.download = '';
-    download.setAttribute('aria-label', 'Download ' + documentLabel.toLowerCase() + ' PDF');
+    addPdfDownload(item, solution.url, documentLabel.toLowerCase());
   }
 }
 for (const [id, label] of collections) {

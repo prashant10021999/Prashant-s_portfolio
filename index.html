@@ -34,7 +34,13 @@
     #about .physics-about-heading { margin: 0 0 .75rem; }
     #about .content h4 { margin: 1.25rem 0 .5rem; font-size: 1.05rem; font-weight: 700; }
     #about .physics-about-link { display: inline-block; margin: .2rem 0 1.35rem; font-weight: 700; text-decoration: underline; text-underline-offset: .2em; }
-    #about .physics-demonstrations { margin-top: 1.5rem; }
+    #about .physics-demonstrations, #about .physics-lessons { margin-top: 1.5rem; }
+    #about .physics-lesson-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    #about .physics-lesson { padding: 1.15rem; border: 1px solid rgba(255, 255, 255, .18); border-radius: .75rem; background: #121d28; }
+    #about .physics-lesson h3 { margin: 0 0 .6rem; font-size: 1.1rem; font-weight: 700; color: #fff; }
+    #about .physics-lesson p { margin: 0 0 .65rem; color: #e3e9ed; line-height: 1.6; }
+    #about .physics-lesson p:last-child { margin-bottom: 0; }
+    #about .physics-lesson a { text-decoration: underline; text-underline-offset: .2em; }
     #about .physics-demo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
     #about .physics-demo { margin: 0; overflow: hidden; border: 1px solid rgba(255, 255, 255, .18); border-radius: .75rem; background: #121d28; }
     #about .physics-demo-image { display: block; background: #09121b; }
@@ -45,7 +51,7 @@
     #about .physics-demo small { color: #b7c5d0; }
     #about .physics-demo a:focus-visible, #about .physics-about-link:focus-visible { outline: 3px solid #12d640; outline-offset: -3px; }
     @media (max-width: 767px) {
-      #about .physics-demo-grid { grid-template-columns: minmax(0, 1fr); }
+      #about .physics-demo-grid, #about .physics-lesson-grid { grid-template-columns: minmax(0, 1fr); }
     }
   </style>
 
@@ -124,15 +130,11 @@
           <img src="assets/img/prashant-portrait.webp" class="img-fluid rounded" alt="Prashant Barnwal holding a statue" width="1122" height="1402" onerror="this.parentElement.hidden = true">
         </div>
         <div class="col-lg pt-4 pt-lg-0 content" data-aos="fade-left">
-          <h3 class="physics-about-heading">Thinking like a physicist</h3>
-          <p>I’m Prashant Barnwal. My background is in physics and materials engineering, and I’m interested in how technology can help students learn physics. Work on optical polarimetry and simulations of light scattering has shaped how I approach a question. I start by asking what can be measured, what the model assumes, and what evidence would make me revise it.</p>
-          <h4>From an unfamiliar problem to a workable model</h4>
-          <p>I bring that approach to JEE Advanced and Physics Olympiad preparation. When students face an unfamiliar problem, I want them to know how to start. Draw the system, decide which effects matter, and choose a principle that connects what they know to what they need. A units check or a limiting case can then reveal whether the answer makes sense.</p>
-          <h4>Practice that develops judgment</h4>
-          <p>Physics gives young learners practice in making predictions, explaining their reasoning, and revising an idea when the evidence changes. Simulations and slow-motion video can help make that process visible. A student can predict how a collision will unfold, test it, and explain the difference between the model and the real motion.</p>
-          <h4>Teaching through questions</h4>
-          <p>My approach to JEE physics draws on Socrates’ use of questions. Before we solve a problem, I ask students to make a prediction and defend it. If two objects roll down the same ramp, would the heavier one always arrive first? What if they have the same shape? What if one is a ring and the other is a solid disc? Each question helps students see which assumption matters and why.</p>
-          <p>Students learn to explain their reasoning, notice where a model breaks down, and revise it when the evidence changes. Those habits help with unfamiliar JEE problems and carry into engineering and science, where the ability to ask a good question and design a test is part of the work.</p>
+          <h3 class="physics-about-heading">A note from Prashant Sir</h3>
+          <p>I’m Prashant Barnwal. My background is in physics and materials engineering, and my work with optical measurements and simulations has taught me to ask what would convince me that my explanation is wrong. That’s the habit I want you to build while preparing for JEE Advanced and Physics Olympiads.</p>
+          <h4>Building a scientific temper</h4>
+          <p>When a problem looks unfamiliar, tell me what you think will happen and why. Then we’ll ask a few more questions. What are you assuming? What could you measure? Would your explanation still work if we changed one thing? That’s how I use Socratic questioning. If a measurement makes you revise your answer, you’ve learned something worth keeping.</p>
+          <p>You can practise this outside a classroom. Start with something you already see every day, make one prediction, and see how well it holds up. Bring that curiosity to your next practice problem.</p>
           <a class="physics-about-link" href="physics/">Explore Physics Workout Questions</a>
           <div class="row">
             <div class="col-lg-6">
@@ -144,7 +146,6 @@
               <ul>
                 <li><i class="icofont-rounded-right"></i> <strong>City:</strong> Hyderabad</li>
                 <li><i class="icofont-rounded-right"></i> <strong>Email:</strong> <a href="mailto:prashantkb2005@gmail.com">prashantkb2005@gmail.com</a></li>
-                <li><i class="icofont-rounded-right"></i> <strong>Institute email:</strong> <a href="mailto:barnwal.1@iitj.ac.in">barnwal.1@iitj.ac.in</a></li>
               </ul>
             </div>
           </div>
@@ -152,6 +153,54 @@
       </div>
 
     </div><!-- End About Me -->
+
+    <div class="physics-lessons container">
+      <div class="section-title">
+        <h2>Practise physics in daily life</h2>
+      </div>
+      <div class="physics-lesson-grid">
+        <article class="physics-lesson">
+          <h3>Mechanics · When the bus brakes</h3>
+          <p>You feel yourself lurch forward. In the road’s frame, the bus slows while your body tends to keep moving at its earlier speed. Ask what force actually slows <em>you</em> down. A seat belt does that job in a car, and spreading the slowdown over more time reduces the average force for the same change in momentum.</p>
+          <p>When a mechanics problem feels crowded, pick one body and draw its forces. That first sketch is progress even if the rest of the solution takes time.</p>
+        </article>
+        <article class="physics-lesson">
+          <h3>Thermodynamics · Which cup stays warm?</h3>
+          <p>Start with two identical covered cups holding the same amount of warm water at the same temperature. Wrap one in a cloth sleeve and record both temperatures at equal time intervals. Which cools more slowly? Insulation design in buildings and transport starts with this same question about how quickly energy leaves a system.</p>
+          <p>If the readings surprise you, check your setup and repeat the comparison. A careful second attempt is part of doing science well.</p>
+        </article>
+        <article class="physics-lesson">
+          <h3>Resonance · Find the rhythm of a swing</h3>
+          <p>Small pushes can build a large swing when you time them with the swing’s natural rhythm. Try explaining why timing matters as much as the size of each push. Engineers ask a related question when they identify vibration frequencies to avoid or damp in bridges and machines.</p>
+          <p>When the wave equation feels abstract, sketch several cycles and mark where energy enters. A good picture can show you where to start.</p>
+        </article>
+        <article class="physics-lesson">
+          <h3>Electrodynamics · What powers a bicycle light?</h3>
+          <p>In a bicycle dynamo, motion changes the magnetic flux through a coil and induces a voltage. At the same wheel speed, supplying current to a lamp takes extra mechanical work. Lenz’s law tells you why the induced current opposes the change that produced it. The same energy accounting matters when engineers design generators and regenerative brakes.</p>
+          <p>Before you reach for a formula, trace where the energy comes from and where it goes. That habit will help you check the direction of an induced effect.</p>
+        </article>
+      </div>
+    </div>
+
+    <div class="physics-lessons container">
+      <div class="section-title">
+        <h2>Debates that changed engineering</h2>
+      </div>
+      <div class="physics-lesson-grid">
+        <article class="physics-lesson">
+          <h3>Was heat a fluid?</h3>
+          <p>Many scientists once thought heat behaved like a conserved fluid called caloric. Joule used falling weights to turn paddles in water and measured its temperature rise. His results helped establish a quantitative link between work and heating. Engineers use that link today to track energy in motors, cooling systems, and machines that generate heat through friction.</p>
+          <p>My question for you is this. What measurement would help you tell two explanations apart?</p>
+          <a href="https://collection.sciencemuseumgroup.org.uk/objects/co2526/mechanical-equivalent-of-heat-apparatus">See Joule’s apparatus</a>
+        </article>
+        <article class="physics-lesson">
+          <h3>AC or DC for the power grid?</h3>
+          <p>In the historical War of the Currents, AC had a practical advantage because transformers made it easy to raise and lower the voltage. Today’s engineers also use high-voltage DC for some long-distance links. The choice depends on the route, the equipment, and the losses the system can tolerate.</p>
+          <p>When you compare two solutions, ask which constraints matter. That’s how an exam habit becomes an engineering decision that can make electricity delivery more efficient.</p>
+          <a href="https://www.energy.gov/oe/electricity-101">Read how modern grids use AC and DC</a>
+        </article>
+      </div>
+    </div>
 
     <!-- ======= Physics Demonstrations ======= -->
     <div class="physics-demonstrations container">
@@ -515,7 +564,7 @@
             <div class="social-links">
               <a href="https://www.linkedin.com/in/prashant-barnwal-108565245/" target="_blank" class="linkedin"><i class="bx bxl-linkedin"></i></a>
               <a href="https://github.com/prashant10021999" target="_blank" class="github"><i class="bx bxl-github"></i></a>
-              <a href="mailto:barnwal.1@iitj.ac.in" target="_blank" class="google"><i class="bx bxl-google"></i></a>
+              <a href="mailto:prashantkb2005@gmail.com" class="google" aria-label="Email Prashant Barnwal"><i class="bx bxl-google"></i></a>
 
             </div>
           </div>
@@ -526,7 +575,6 @@
             <i class="bx bx-envelope"></i>
             <h3>Email</h3>
             <p>prashantkb2005@gmail.com</p>
-            <p>barnwal.1@iitj.ac.in</p>
           </div>
         </div>
         <div class="col-md-6 mt-4 d-flex align-items-stretch">

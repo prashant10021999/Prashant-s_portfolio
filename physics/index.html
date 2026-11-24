@@ -112,8 +112,7 @@ const olympiadChapters = new Map([
   ['experimental-physics-and-data-analysis', ['Experimental Physics and Data Analysis', 'Measurement, uncertainty, error bars and fitting experimental data']],
   ['mathematical-methods-and-modelling', ['Mathematical Methods and Modelling', 'Dimensional analysis, scaling, approximations and limiting cases']]
 ]);
-const olympiadPdfFolder = 'solutions/olympiad/';
-const olympiadPdfs = new Set();
+const olympiadRepository = 'physics-olympiad-solutions';
 const solutions = [];
 const seen = new Set();
 const questionPath = /^([a-z0-9]+(?:-[a-z0-9]+)*)\/q(\d+)\.pdf$/i;
@@ -136,10 +135,6 @@ for (const file of files) {
   const prefix = '/physics/solutions/';
   if (!path.startsWith(prefix)) continue;
   const relativePath = path.slice('/physics/'.length);
-  if (relativePath.startsWith(olympiadPdfFolder)) {
-    olympiadPdfs.add(relativePath);
-    continue;
-  }
   const [collection, group, name, extra] = path.slice(prefix.length).split('/');
   if (group && name && extra === undefined) {
     addSolution(collection, group + '/' + name, relativePath);
@@ -499,20 +494,14 @@ function renderOlympiadBrowser() {
   const slug = olympiadChapterSelect.value;
   if (!slug) return;
   const [label, description] = olympiadChapters.get(slug);
-  const filename = slug + '.pdf';
-  const path = olympiadPdfFolder + filename;
-  const published = olympiadPdfs.has(path);
+  const url = new URL('solutions/' + slug + '.pdf', repositoryUrl(olympiadRepository)).href;
   add(olympiadChapterDetails, 'h3', label);
   add(olympiadChapterDetails, 'p', description);
   const list = add(olympiadChapterDetails, 'ul', '');
   list.className = 'solution-list';
   const item = add(list, 'li', '');
   add(item, 'strong', 'Chapter solutions');
-  if (published) {
-    addPdfLinks(item, path, label);
-  } else {
-    addPdfLinks(item, placeholderPdf('Physics Olympiad', label), label, filename);
-  }
+  addPdfLinks(item, url, label);
 }
 function render() {
   for (const button of cards.querySelectorAll('button')) {

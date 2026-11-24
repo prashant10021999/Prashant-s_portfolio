@@ -30,6 +30,24 @@
 
   <!-- Template Main CSS File -->
   <link href="assets/css/style.css" rel="stylesheet">
+  <style>
+    #about .physics-about-heading { margin: 0 0 .75rem; }
+    #about .content h4 { margin: 1.25rem 0 .5rem; font-size: 1.05rem; font-weight: 700; }
+    #about .physics-about-link { display: inline-block; margin: .2rem 0 1.35rem; font-weight: 700; text-decoration: underline; text-underline-offset: .2em; }
+    #about .physics-demonstrations { margin-top: 1.5rem; }
+    #about .physics-demo-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+    #about .physics-demo { margin: 0; overflow: hidden; border: 1px solid rgba(255, 255, 255, .18); border-radius: .75rem; background: #121d28; }
+    #about .physics-demo-image { display: block; background: #09121b; }
+    #about .physics-demo-image img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: contain; }
+    #about .physics-demo figcaption { padding: 1rem 1.15rem; }
+    #about .physics-demo h3 { margin: 0 0 .5rem; font-size: 1.1rem; font-weight: 700; color: #fff; }
+    #about .physics-demo p { margin: 0 0 .75rem; color: #e3e9ed; line-height: 1.55; }
+    #about .physics-demo small { color: #b7c5d0; }
+    #about .physics-demo a:focus-visible, #about .physics-about-link:focus-visible { outline: 3px solid #12d640; outline-offset: -3px; }
+    @media (max-width: 767px) {
+      #about .physics-demo-grid { grid-template-columns: minmax(0, 1fr); }
+    }
+  </style>
 
 
   <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -103,13 +121,16 @@
 
       <div class="row">
         <div class="col-lg-4" data-aos="fade-right">
-          <img src="assets/img/profile.jpeg" class="img-fluid" alt="">
+          <img src="assets/img/profile.jpeg" class="img-fluid" alt="Prashant Barnwal">
         </div>
         <div class="col-lg-8 pt-4 pt-lg-0 content" data-aos="fade-left">
-          <p>Focused and enthusiastic developer with a keen interest in Quantum Information, Cryptography and artificial intelligence. By comprehensive exposure
-            to the underlying concepts and applying them vividly to various projects, my love for these domains came into being.
-            I am a passionate individual who thrives to build and apply algorithms to solve real-world industry problems.
-          </p>
+          <h3 class="physics-about-heading">Thinking like a physicist</h3>
+          <p>I’m Prashant Barnwal. My background is in physics and materials engineering, and I’m interested in how technology can help students learn physics. Work on optical polarimetry and simulations of light scattering has shaped how I approach a question. I start by asking what can be measured, what the model assumes, and what evidence would make me revise it.</p>
+          <h4>From an unfamiliar problem to a workable model</h4>
+          <p>I bring that approach to JEE Advanced and Physics Olympiad preparation. When students face an unfamiliar problem, I want them to know how to start. Draw the system, decide which effects matter, and choose a principle that connects what they know to what they need. A units check or a limiting case can then reveal whether the answer makes sense.</p>
+          <h4>Practice that develops judgment</h4>
+          <p>Physics gives young learners practice in making predictions, explaining their reasoning, and revising an idea when the evidence changes. Simulations and slow-motion video can help make that process visible. A student can predict how a collision will unfold, test it, and explain the difference between the model and the real motion.</p>
+          <a class="physics-about-link" href="physics/">Explore Physics Workout Questions</a>
           <div class="row">
             <div class="col-lg-6">
               <ul>
@@ -129,65 +150,44 @@
 
     </div><!-- End About Me -->
 
-    <!-- ======= Interests ======= -->
-    <div class="interests container">
-
+    <!-- ======= Physics Demonstrations ======= -->
+    <div class="physics-demonstrations container">
       <div class="section-title">
-        <h2>Interests</h2>
+        <h2>Physics in action</h2>
       </div>
-
-      <div class="row">
-        <div class="col-lg-3 col-md-4">
-          <div class="icon-box">
-            <i class="ri-global-line" style="color: #ffbb2c;"></i>
-            <h3>Quantum Information and Cryptography</h3>
-          </div>
-        </div>
-        <div class="col-lg-3 col-md-4 mt-4 mt-md-0">
-          <div class="icon-box">
-            <i class="ri-database-2-line" style="color: #5578ff;"></i>
-            <h3>Machine Learning</h3>
-          </div>
-        </div>
-        <div class="col-lg-3 col-md-4 mt-4 mt-md-0">
-          <div class="icon-box">
-            <i class="ri-camera-3-line" style="color: #e80368;"></i>
-            <h3>Computer Vision</h3>
-          </div>
-        </div>
-        <div class="col-lg-3 col-md-4 mt-4 mt-lg-0">
-          <div class="icon-box">
-            <i class="ri-english-input" style="color: #1c7d32;"></i>
-            <h3>Natural Language Processing</h3>
-          </div>
-        </div>
-        <div class="col-lg-3 col-md-4 mt-4">
-          <div class="icon-box">
-            <i class="ri-code-s-slash-fill" style="color: #28a745;"></i>
-            <h3>Software Engineering</h3>
-          </div>
-        </div>
-        <div class="col-lg-3 col-md-4 mt-4">
-          <div class="icon-box">
-            <i class="ri-bar-chart-box-line" style="color: #f1081f;"></i>
-            <h3>Visualization</h3>
-          </div>
-        </div>
-        <div class="col-lg-3 col-md-4 mt-4">
-          <div class="icon-box">
-            <i class="ri-file-list-3-line" style="color: #47aeff;"></i>
-            <h3>Algorithms</h3>
-          </div>
-        </div>
-        <div class="col-lg-3 col-md-4 mt-4">
-          <div class="icon-box">
-            <i class="ri-image-line" style="color: #ffc107;"></i>
-            <h3>Image Processing</h3>
-          </div>
-        </div>
+      <div class="physics-demo-grid">
+        <figure class="physics-demo">
+          <a class="physics-demo-image" href="https://commons.wikimedia.org/wiki/File:Newtons_Cradle.jpg">
+            <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/3/37/Newtons_Cradle.jpg/960px-Newtons_Cradle.jpg" alt="Steel balls suspended in a Newton’s cradle with one ball approaching the row" loading="lazy" decoding="async">
+          </a>
+          <figcaption>
+            <h3>Newton’s cradle</h3>
+            <p>Momentum and kinetic energy are both approximately conserved during the collision. For identical balls, those two constraints explain why one incoming ball is typically followed by one outgoing ball.</p>
+            <small><a href="https://commons.wikimedia.org/wiki/File:Newtons_Cradle.jpg">The Dean of Physics</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a></small>
+          </figcaption>
+        </figure>
+        <figure class="physics-demo">
+          <a class="physics-demo-image" href="https://commons.wikimedia.org/wiki/File:Round_Chladni_plate_with_3_circular_and_4_linear_nodes.jpg">
+            <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/0/03/Round_Chladni_plate_with_3_circular_and_4_linear_nodes.jpg/960px-Round_Chladni_plate_with_3_circular_and_4_linear_nodes.jpg" alt="Sand tracing rings and intersecting lines on a round Chladni plate" loading="lazy" decoding="async">
+          </a>
+          <figcaption>
+            <h3>Standing waves on a Chladni plate</h3>
+            <p>Sand collects where the plate barely moves. The rings and lines trace the nodes of a standing wave and show how the shape of an object influences the ways it can vibrate.</p>
+            <small><a href="https://commons.wikimedia.org/wiki/File:Round_Chladni_plate_with_3_circular_and_4_linear_nodes.jpg">Pieter Kuiper</a> · Public domain</small>
+          </figcaption>
+        </figure>
+        <figure class="physics-demo">
+          <a class="physics-demo-image" href="https://commons.wikimedia.org/wiki/File:Cosmic_radiations_in_a_diffusion_cloud_chamber.png">
+            <img src="https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b0/Cosmic_radiations_in_a_diffusion_cloud_chamber.png/960px-Cosmic_radiations_in_a_diffusion_cloud_chamber.png" alt="White condensation tracks left by charged particles in a diffusion cloud chamber" loading="lazy" decoding="async">
+          </a>
+          <figcaption>
+            <h3>Particle tracks in a cloud chamber</h3>
+            <p>A charged particle ionises the vapour along its path. Droplets condense on those ions, turning an otherwise invisible passage into a track you can examine.</p>
+            <small><a href="https://commons.wikimedia.org/wiki/File:Cosmic_radiations_in_a_diffusion_cloud_chamber.png">Cloudylabs</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a></small>
+          </figcaption>
+        </figure>
       </div>
-
-    </div><!-- End Interests -->
+    </div><!-- End Physics Demonstrations -->
   </section><!-- End About Section -->
  
   <!-- Start Education Section -->

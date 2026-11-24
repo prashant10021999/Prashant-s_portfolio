@@ -14,7 +14,7 @@ nav,main{width:min(1020px,calc(100% - 2rem));margin:auto}
 nav{display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap;padding:.9rem 0}
 a{color:var(--blue);text-underline-offset:.2em}nav a{font-weight:650}
 main{padding:clamp(1.5rem,5vw,3rem) 0 3rem}h1,h2,h3,p{margin:0 0 .5rem}h1{font-size:clamp(2.2rem,6vw,3.6rem);letter-spacing:-.045em;line-height:1.12}h2{font-size:1.35rem}h3{font-size:1.05rem}p,small{color:var(--muted)}
-.controls{margin:1.4rem 0 1.75rem}label{display:block;font-weight:650}input,select,button{font:inherit;color:inherit}input,select{max-width:100%;width:32rem;border:1px solid #8197ae;border-radius:.55rem;background:#fff;padding:.55rem .75rem}select{width:auto;min-width:12rem}button{cursor:pointer}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #1669ba;outline-offset:3px}
+label{display:block;font-weight:650}input,select,button{font:inherit;color:inherit}input,select{max-width:100%;width:32rem;border:1px solid #8197ae;border-radius:.55rem;background:#fff;padding:.55rem .75rem}select{width:auto;min-width:12rem}button{cursor:pointer}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #1669ba;outline-offset:3px}
 .collections{display:grid;grid-template-columns:repeat(3,1fr);gap:.65rem;margin:.75rem 0 1.4rem}.collection{background:#fff;border:1px solid var(--edge);border-radius:.65rem;text-align:left;padding:.7rem .85rem;min-height:4.4rem}.collection strong,.collection small{display:block}.collection:hover,.collection[aria-pressed=true]{border-color:var(--blue)}.collection[aria-pressed=true]{background:#e5f0fc}.results-head{display:flex;align-items:baseline;justify-content:space-between;gap:.7rem;flex-wrap:wrap}.group{margin:1rem 0}.solution-list{list-style:none;padding:0;margin:.4rem 0}.solution-list li,.empty{background:#fff;border:1px solid var(--edge);border-radius:.55rem;padding:.7rem .85rem;margin:.45rem 0}.solution-list li{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;flex-wrap:wrap}.solution-list a:first-child{font-weight:650}.group-select{margin:.7rem 0 1rem}[hidden]{display:none!important}
 .pdf-actions{display:flex;gap:.5rem 1rem;flex-wrap:wrap}
 @media(max-width:690px){.collections{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:365px){.collections{grid-template-columns:1fr}}
@@ -25,7 +25,6 @@ main{padding:clamp(1.5rem,5vw,3rem) 0 3rem}h1,h2,h3,p{margin:0 0 .5rem}h1{font-s
 <main>
 <h1>Physics Solutions</h1>
 <p>Find worked solutions by chapter, exam session, or question number.</p>
-<div id="solution-search" class="controls"><label for="search">Search solutions</label><input id="search" type="search" placeholder="Try kinematics, 2024, or Q12" autocomplete="off"></div>
 <section aria-labelledby="collections-title"><h2 id="collections-title">Collections</h2><div id="collections" class="collections"></div></section>
 <section aria-labelledby="results-title">
 <div class="results-head"><h2 id="results-title">All solutions</h2><span id="status" role="status"></span></div>
@@ -247,8 +246,6 @@ async function loadExerciseCatalog(repository) {
   }
 }
 sortSolutions();
-const search = document.querySelector('#search');
-const searchControl = document.querySelector('#solution-search');
 const cards = document.querySelector('#collections');
 const group = document.querySelector('#group');
 const groupControl = document.querySelector('#group-control');
@@ -484,7 +481,6 @@ function render() {
   sbtBrowser.hidden = !browsingSbt;
   hcvBrowser.hidden = !browsingHcv;
   advancedBrowser.hidden = !browsingAdvanced;
-  searchControl.hidden = browsingExercises;
   results.hidden = browsingExercises;
   if (browsingExercises) {
     groupControl.hidden = true;
@@ -501,22 +497,11 @@ function render() {
   for (const name of groups) group.append(new Option(name, name));
   group.value = groups.includes(previousGroup) ? previousGroup : '';
   groupControl.hidden = groups.length < 2;
-  const tokens = search.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
-  const matches = inCollection.filter(solution => {
-    if (group.value && solution.group !== group.value) return false;
-    const label = (collections.get(solution.collection) + ' ' + solution.group).toLowerCase();
-    return tokens.every(token => {
-      const explicit = /^q0*(\d+)$/.exec(token);
-      if (explicit) return Number(explicit[1]) === solution.question;
-      return label.includes(token) || (/^\d+$/.test(token) && Number(token) === solution.question);
-    });
-  });
+  const matches = group.value ? inCollection.filter(solution => solution.group === group.value) : inCollection;
   results.replaceChildren();
   status.textContent = countLabel(matches.length, 'PDF');
   if (!matches.length) {
-    const message = inCollection.length ?
-      'No matches. Try a different question number or search term.' : 'Solutions will appear here as they are uploaded.';
-    add(results, 'p', message).className = 'empty';
+    add(results, 'p', 'Solutions will appear here as they are uploaded.').className = 'empty';
     return;
   }
   const lists = new Map();
@@ -580,7 +565,6 @@ for (const [part, {chapters, start}] of advancedParts) {
   addHcvChoice(advancedPartButtons, part, 'Part ' + part, 'Chapters ' + start + '–' + (start + chapters.length - 1), chooseAdvancedPart);
 }
 advancedChapterSelect.addEventListener('change', render);
-search.addEventListener('input', render);
 group.addEventListener('change', render);
 render();
 for (const repository of exerciseRepositories) loadExerciseCatalog(repository);

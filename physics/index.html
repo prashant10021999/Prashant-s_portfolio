@@ -69,6 +69,13 @@ label{display:block;font-weight:650}input,select,button{font:inherit;color:inher
   </div>
   <div id="advanced-chapter-pdf"></div>
 </div>
+<div id="olympiad-browser" hidden>
+  <div class="group-select">
+    <label for="olympiad-chapter">Choose a chapter</label>
+    <select id="olympiad-chapter"></select>
+  </div>
+  <div id="olympiad-chapter-details"></div>
+</div>
 <div id="results"></div>
 <noscript><p>Enable JavaScript to browse the solutions.</p></noscript>
 </section>
@@ -84,13 +91,29 @@ label{display:block;font-weight:650}input,select,button{font:inherit;color:inher
 </template>
 <script>
 const collections = new Map([
-  ['pathfinder', 'Pathfinder'], ['sbt', 'SBT'], ['hcv', 'HCV'], ['jee-advanced', 'JEE Advanced PYQs']
+  ['pathfinder', 'Pathfinder'], ['sbt', 'SBT'], ['hcv', 'HCV'], ['jee-advanced', 'JEE Advanced PYQs'],
+  ['olympiad', 'Physics Olympiad']
 ]);
 const collator = new Intl.Collator('en', {numeric: true});
 const formatGroup = slug => slug.split('-').map(word => {
   if (['ac', 'dc', 'emi', 'shm'].includes(word)) return word.toUpperCase();
   return word.charAt(0).toUpperCase() + word.slice(1);
 }).join(' ');
+const olympiadChapters = new Map([
+  ['mechanics', ['Mechanics', 'Motion, forces, energy, rotation and elasticity', 28, 2]],
+  ['gravitation-and-astrophysics', ['Gravitation and Astrophysics', 'Orbits, tidal effects, stars and cosmology', 24, 122]],
+  ['fluid-mechanics', ['Fluid Mechanics', 'Pressure, buoyancy, flow, viscosity and surface tension', 16, 230]],
+  ['oscillations-and-waves', ['Oscillations and Waves', 'Normal modes, resonance, sound and mechanical waves', 13, 308]],
+  ['thermal-physics', ['Thermal Physics', 'Heat, gases, phase changes and thermodynamic cycles', 30, 361]],
+  ['electricity-and-magnetism', ['Electricity and Magnetism', 'Electric fields, circuits, magnetic fields and induction', 64, 501]],
+  ['optics-and-light', ['Optics and Light', 'Imaging, refraction, interference, diffraction and polarization', 45, 759]],
+  ['modern-physics', ['Modern Physics', 'Quantum, atomic, nuclear and particle physics and relativity', 26, 998]],
+  ['mixed-topics', ['Mixed Topics', 'Sets that bring together distinct areas of physics', 14, 1131]],
+  ['experimental-physics-and-data-analysis', ['Experimental Physics and Data Analysis', 'Measurement, uncertainty, error bars and fitting experimental data']],
+  ['mathematical-methods-and-modelling', ['Mathematical Methods and Modelling', 'Dimensional analysis, scaling, approximations and limiting cases']]
+]);
+const olympiadPdfFolder = 'solutions/olympiad/';
+const olympiadPdfs = new Set();
 const solutions = [];
 const seen = new Set();
 const questionPath = /^([a-z0-9]+(?:-[a-z0-9]+)*)\/q(\d+)\.pdf$/i;
@@ -112,9 +135,14 @@ for (const file of files) {
   const path = file.dataset.path;
   const prefix = '/physics/solutions/';
   if (!path.startsWith(prefix)) continue;
+  const relativePath = path.slice('/physics/'.length);
+  if (relativePath.startsWith(olympiadPdfFolder)) {
+    olympiadPdfs.add(relativePath);
+    continue;
+  }
   const [collection, group, name, extra] = path.slice(prefix.length).split('/');
   if (group && name && extra === undefined) {
-    addSolution(collection, group + '/' + name, path.slice('/physics/'.length));
+    addSolution(collection, group + '/' + name, relativePath);
   }
 }
 const pathfinderParts = new Map([
@@ -274,6 +302,9 @@ const advancedPartButtons = document.querySelector('#advanced-parts');
 const advancedChapterControl = document.querySelector('#advanced-chapter-control');
 const advancedChapterSelect = document.querySelector('#advanced-chapter');
 const advancedChapterPdf = document.querySelector('#advanced-chapter-pdf');
+const olympiadBrowser = document.querySelector('#olympiad-browser');
+const olympiadChapterSelect = document.querySelector('#olympiad-chapter');
+const olympiadChapterDetails = document.querySelector('#olympiad-chapter-details');
 let selected = '';
 
 function add(parent, tag, content) {
@@ -290,10 +321,11 @@ function addPdfDownload(parent, url, label, filename = '') {
 }
 function countLabel(count, label) { return count + ' ' + label + (count === 1 ? '' : 's'); }
 const placeholderPdfs = new Map();
-function advancedPlaceholderPdf(label) {
-  if (placeholderPdfs.has(label)) return placeholderPdfs.get(label);
-  // Chapter labels come from the ASCII slugs in advancedParts.
-  const stream = 'BT /F1 22 Tf 52 735 Td (JEE Advanced Physics) Tj ' +
+function placeholderPdf(collection, label) {
+  const key = collection + '/' + label;
+  if (placeholderPdfs.has(key)) return placeholderPdfs.get(key);
+  // Collection and chapter labels are ASCII. PDF cross-reference offsets count bytes.
+  const stream = 'BT /F1 22 Tf 52 735 Td (' + collection + ') Tj ' +
     '/F1 16 Tf 0 -38 Td (' + label + ') Tj ' +
     '/F1 13 Tf 0 -32 Td (Solutions coming soon) Tj ET\n';
   const objects = [
@@ -314,20 +346,23 @@ function advancedPlaceholderPdf(label) {
   pdf += 'xref\n0 ' + offsets.length + '\n' + offsets.join('') +
     'trailer\n<< /Size ' + offsets.length + ' /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF\n';
   const url = URL.createObjectURL(new Blob([pdf], {type: 'application/pdf'}));
-  placeholderPdfs.set(label, url);
+  placeholderPdfs.set(key, url);
   return url;
 }
+function addPdfLinks(item, url, label, placeholderFilename = '') {
+  const actions = add(item, 'div', '');
+  actions.className = 'pdf-actions';
+  const view = add(actions, 'a', 'View PDF');
+  view.href = url;
+  view.setAttribute('aria-label', 'View ' + label + ' PDF');
+  addPdfDownload(actions, url, label, placeholderFilename);
+  if (placeholderFilename) add(actions, 'small', 'Placeholder');
+}
 function addPdfActions(item, repository, path, label, placeholderFilename) {
-  const published = exerciseCatalogs.get(repository)?.has('/' + path);
-  if (published || placeholderFilename) {
-    const url = published ? new URL(path, repositoryUrl(repository)).href : advancedPlaceholderPdf(label);
-    const actions = add(item, 'div', '');
-    actions.className = 'pdf-actions';
-    const view = add(actions, 'a', 'View PDF');
-    view.href = url;
-    view.setAttribute('aria-label', 'View ' + label + ' PDF');
-    addPdfDownload(actions, url, label, published ? '' : placeholderFilename);
-    if (!published) add(actions, 'small', 'Placeholder');
+  if (exerciseCatalogs.get(repository)?.has('/' + path)) {
+    addPdfLinks(item, new URL(path, repositoryUrl(repository)).href, label);
+  } else if (placeholderFilename) {
+    addPdfLinks(item, placeholderPdf('JEE Advanced Physics', label), label, placeholderFilename);
   } else {
     const message = exercisePending.has(repository) ? 'Checking…' :
       exerciseUnavailable.has(repository) ? 'Temporarily unavailable' : 'Coming soon';
@@ -458,6 +493,32 @@ function renderAdvancedBrowser() {
   add(item, 'strong', 'Chapter ' + number + ' · ' + label);
   addPdfActions(item, part.repository, 'solutions/' + filename, label, filename);
 }
+function renderOlympiadBrowser() {
+  status.textContent = countLabel(olympiadChapters.size, 'chapter');
+  olympiadChapterDetails.replaceChildren();
+  const slug = olympiadChapterSelect.value;
+  if (!slug) return;
+  const [label, description, sets, page] = olympiadChapters.get(slug);
+  const filename = slug + '.pdf';
+  const path = olympiadPdfFolder + filename;
+  const published = olympiadPdfs.has(path);
+  add(olympiadChapterDetails, 'h3', label);
+  add(olympiadChapterDetails, 'p', description);
+  if (sets) {
+    add(olympiadChapterDetails, 'p', countLabel(sets, 'set') + ' in the source list · Starts on page ' + page);
+  } else if (!published) {
+    add(olympiadChapterDetails, 'p', 'Planned chapter');
+  }
+  const list = add(olympiadChapterDetails, 'ul', '');
+  list.className = 'solution-list';
+  const item = add(list, 'li', '');
+  add(item, 'strong', 'Chapter solutions');
+  if (published) {
+    addPdfLinks(item, path, label);
+  } else {
+    addPdfLinks(item, placeholderPdf('Physics Olympiad', label), label, filename);
+  }
+}
 function render() {
   for (const button of cards.querySelectorAll('button')) {
     const id = button.dataset.collection;
@@ -466,9 +527,10 @@ function render() {
       button.querySelector('small').textContent = 'Volumes 1 and 2';
       continue;
     }
-    if (id === 'pathfinder' || id === 'jee-advanced') {
+    if (id === 'olympiad') {
+      button.querySelector('small').textContent = countLabel(olympiadChapters.size, 'chapter');
+    } else {
       button.querySelector('small').textContent = 'Parts 1 and 2';
-      continue;
     }
   }
   title.textContent = collections.get(selected) || 'All solutions';
@@ -476,17 +538,20 @@ function render() {
   const browsingPathfinder = selected === 'pathfinder';
   const browsingHcv = selected === 'hcv';
   const browsingAdvanced = selected === 'jee-advanced';
-  const browsingExercises = browsingSbt || browsingPathfinder || browsingHcv || browsingAdvanced;
+  const browsingOlympiad = selected === 'olympiad';
+  const browsingExercises = browsingSbt || browsingPathfinder || browsingHcv || browsingAdvanced || browsingOlympiad;
   pathfinderBrowser.hidden = !browsingPathfinder;
   sbtBrowser.hidden = !browsingSbt;
   hcvBrowser.hidden = !browsingHcv;
   advancedBrowser.hidden = !browsingAdvanced;
+  olympiadBrowser.hidden = !browsingOlympiad;
   results.hidden = browsingExercises;
   if (browsingExercises) {
     groupControl.hidden = true;
     if (browsingSbt) renderSbtBrowser();
     else if (browsingHcv) renderHcvBrowser();
     else if (browsingAdvanced) renderAdvancedBrowser();
+    else if (browsingOlympiad) renderOlympiadBrowser();
     else renderPathfinderBrowser();
     return;
   }
@@ -565,6 +630,14 @@ for (const [part, {chapters, start}] of advancedParts) {
   addHcvChoice(advancedPartButtons, part, 'Part ' + part, 'Chapters ' + start + '–' + (start + chapters.length - 1), chooseAdvancedPart);
 }
 advancedChapterSelect.addEventListener('change', render);
+olympiadChapterSelect.append(new Option('Select a chapter', ''));
+let olympiadChapterNumber = 0;
+for (const [slug, [label, , sets]] of olympiadChapters) {
+  olympiadChapterNumber += 1;
+  const planned = !sets && !olympiadPdfs.has(olympiadPdfFolder + slug + '.pdf');
+  olympiadChapterSelect.append(new Option(olympiadChapterNumber + ' · ' + label + (planned ? ' (planned)' : ''), slug));
+}
+olympiadChapterSelect.addEventListener('change', render);
 group.addEventListener('change', render);
 render();
 for (const repository of exerciseRepositories) loadExerciseCatalog(repository);

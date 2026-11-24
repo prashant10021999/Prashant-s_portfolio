@@ -100,15 +100,15 @@ const formatGroup = slug => slug.split('-').map(word => {
   return word.charAt(0).toUpperCase() + word.slice(1);
 }).join(' ');
 const olympiadChapters = new Map([
-  ['mechanics', ['Mechanics', 'Motion, forces, energy, rotation and elasticity', 28, 2]],
-  ['gravitation-and-astrophysics', ['Gravitation and Astrophysics', 'Orbits, tidal effects, stars and cosmology', 24, 122]],
-  ['fluid-mechanics', ['Fluid Mechanics', 'Pressure, buoyancy, flow, viscosity and surface tension', 16, 230]],
-  ['oscillations-and-waves', ['Oscillations and Waves', 'Normal modes, resonance, sound and mechanical waves', 13, 308]],
-  ['thermal-physics', ['Thermal Physics', 'Heat, gases, phase changes and thermodynamic cycles', 30, 361]],
-  ['electricity-and-magnetism', ['Electricity and Magnetism', 'Electric fields, circuits, magnetic fields and induction', 64, 501]],
-  ['optics-and-light', ['Optics and Light', 'Imaging, refraction, interference, diffraction and polarization', 45, 759]],
-  ['modern-physics', ['Modern Physics', 'Quantum, atomic, nuclear and particle physics and relativity', 26, 998]],
-  ['mixed-topics', ['Mixed Topics', 'Sets that bring together distinct areas of physics', 14, 1131]],
+  ['mechanics', ['Mechanics', 'Motion, forces, energy, rotation and elasticity']],
+  ['gravitation-and-astrophysics', ['Gravitation and Astrophysics', 'Orbits, tidal effects, stars and cosmology']],
+  ['fluid-mechanics', ['Fluid Mechanics', 'Pressure, buoyancy, flow, viscosity and surface tension']],
+  ['oscillations-and-waves', ['Oscillations and Waves', 'Normal modes, resonance, sound and mechanical waves']],
+  ['thermal-physics', ['Thermal Physics', 'Heat, gases, phase changes and thermodynamic cycles']],
+  ['electricity-and-magnetism', ['Electricity and Magnetism', 'Electric fields, circuits, magnetic fields and induction']],
+  ['optics-and-light', ['Optics and Light', 'Imaging, refraction, interference, diffraction and polarization']],
+  ['modern-physics', ['Modern Physics', 'Quantum, atomic, nuclear and particle physics and relativity']],
+  ['mixed-topics', ['Mixed Topics', 'Sets that bring together distinct areas of physics']],
   ['experimental-physics-and-data-analysis', ['Experimental Physics and Data Analysis', 'Measurement, uncertainty, error bars and fitting experimental data']],
   ['mathematical-methods-and-modelling', ['Mathematical Methods and Modelling', 'Dimensional analysis, scaling, approximations and limiting cases']]
 ]);
@@ -498,15 +498,12 @@ function renderOlympiadBrowser() {
   olympiadChapterDetails.replaceChildren();
   const slug = olympiadChapterSelect.value;
   if (!slug) return;
-  const [label, description, sets, page] = olympiadChapters.get(slug);
+  const [label, description] = olympiadChapters.get(slug);
   const filename = slug + '.pdf';
   const path = olympiadPdfFolder + filename;
   const published = olympiadPdfs.has(path);
   add(olympiadChapterDetails, 'h3', label);
   add(olympiadChapterDetails, 'p', description);
-  if (sets) {
-    add(olympiadChapterDetails, 'p', countLabel(sets, 'set') + ' in the source list · Starts on page ' + page);
-  }
   const list = add(olympiadChapterDetails, 'ul', '');
   list.className = 'solution-list';
   const item = add(list, 'li', '');

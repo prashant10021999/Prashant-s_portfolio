@@ -300,7 +300,8 @@ const advancedChapterPdf = document.querySelector('#advanced-chapter-pdf');
 const olympiadBrowser = document.querySelector('#olympiad-browser');
 const olympiadChapterSelect = document.querySelector('#olympiad-chapter');
 const olympiadChapterDetails = document.querySelector('#olympiad-chapter-details');
-let selected = '';
+const requestedCollection = new URLSearchParams(window.location.search).get('collection');
+let selected = collections.has(requestedCollection) ? requestedCollection : '';
 
 function add(parent, tag, content) {
   const element = document.createElement(tag);

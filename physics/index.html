@@ -311,22 +311,52 @@ function add(parent, tag, content) {
   parent.append(element);
   return element;
 }
-function addPdfDownload(parent, url, label) {
+function addPdfDownload(parent, url, label, filename = '') {
   const download = add(parent, 'a', 'Download PDF');
   download.href = url;
-  download.download = '';
+  download.download = filename;
   download.setAttribute('aria-label', 'Download ' + label + ' PDF');
 }
 function countLabel(count, label) { return count + ' ' + label + (count === 1 ? '' : 's'); }
-function addPdfActions(item, repository, path, label) {
-  if (exerciseCatalogs.get(repository)?.has('/' + path)) {
-    const url = new URL(path, repositoryUrl(repository)).href;
+const placeholderPdfs = new Map();
+function advancedPlaceholderPdf(label) {
+  if (placeholderPdfs.has(label)) return placeholderPdfs.get(label);
+  // Chapter labels come from the ASCII slugs in advancedParts.
+  const stream = 'BT /F1 22 Tf 52 735 Td (JEE Advanced Physics) Tj ' +
+    '/F1 16 Tf 0 -38 Td (' + label + ') Tj ' +
+    '/F1 13 Tf 0 -32 Td (Solutions coming soon) Tj ET\n';
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] ' +
+      '/Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+    '<< /Length ' + stream.length + ' >>\nstream\n' + stream + 'endstream'
+  ];
+  let pdf = '%PDF-1.4\n';
+  const offsets = ['0000000000 65535 f \n'];
+  for (const [index, object] of objects.entries()) {
+    offsets.push(String(pdf.length).padStart(10, '0') + ' 00000 n \n');
+    pdf += (index + 1) + ' 0 obj\n' + object + '\nendobj\n';
+  }
+  const xref = pdf.length;
+  pdf += 'xref\n0 ' + offsets.length + '\n' + offsets.join('') +
+    'trailer\n<< /Size ' + offsets.length + ' /Root 1 0 R >>\nstartxref\n' + xref + '\n%%EOF\n';
+  const url = URL.createObjectURL(new Blob([pdf], {type: 'application/pdf'}));
+  placeholderPdfs.set(label, url);
+  return url;
+}
+function addPdfActions(item, repository, path, label, placeholderFilename) {
+  const published = exerciseCatalogs.get(repository)?.has('/' + path);
+  if (published || placeholderFilename) {
+    const url = published ? new URL(path, repositoryUrl(repository)).href : advancedPlaceholderPdf(label);
     const actions = add(item, 'div', '');
     actions.className = 'pdf-actions';
     const view = add(actions, 'a', 'View PDF');
     view.href = url;
     view.setAttribute('aria-label', 'View ' + label + ' PDF');
-    addPdfDownload(actions, url, label);
+    addPdfDownload(actions, url, label, published ? '' : placeholderFilename);
+    if (!published) add(actions, 'small', 'Placeholder');
   } else {
     const message = exercisePending.has(repository) ? 'Checking…' :
       exerciseUnavailable.has(repository) ? 'Temporarily unavailable' : 'Coming soon';
@@ -455,7 +485,7 @@ function renderAdvancedBrowser() {
   const item = add(list, 'li', '');
   const label = formatGroup(slug);
   add(item, 'strong', 'Chapter ' + number + ' · ' + label);
-  addPdfActions(item, part.repository, 'solutions/' + filename, label);
+  addPdfActions(item, part.repository, 'solutions/' + filename, label, filename);
 }
 function render() {
   for (const button of cards.querySelectorAll('button')) {

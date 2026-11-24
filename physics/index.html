@@ -5,7 +5,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Physics Solutions | Prashant Barnwal</title>
+<title>Physics Workout Questions | Prashant Barnwal</title>
 <style>
 :root{color-scheme:light;font:16px/1.6 system-ui,sans-serif;--ink:#152941;--muted:#506378;--blue:#125aa3;--edge:#cad8e6;--page:#f3f7fb}
 *{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink)}
@@ -23,11 +23,11 @@ label{display:block;font-weight:650}input,select,button{font:inherit;color:inher
 <body>
 <header><nav aria-label="Site"><strong>Prashant Barnwal</strong><a href="../">Back to portfolio</a></nav></header>
 <main>
-<h1>Physics Solutions</h1>
-<p>Find worked solutions by chapter, exam session, or question number.</p>
-<section aria-labelledby="collections-title"><h2 id="collections-title">Collections</h2><div id="collections" class="collections"></div></section>
+<h1>Physics Workout Questions</h1>
+<p>Build your problem-solving skills one chapter at a time.</p>
+<section aria-labelledby="collections-title"><h2 id="collections-title">Pick Your Challenge</h2><div id="collections" class="collections"></div></section>
 <section aria-labelledby="results-title">
-<div class="results-head"><h2 id="results-title">All solutions</h2><span id="status" role="status"></span></div>
+<div class="results-head"><h2 id="results-title">Start Your Workout</h2><span id="status" role="status"></span></div>
 <div id="group-control" class="group-select" hidden><label for="group">Chapter or exam session</label><select id="group"></select></div>
 <div id="pathfinder-browser" hidden>
   <h3>Choose a part</h3>
@@ -528,7 +528,7 @@ function render() {
       button.querySelector('small').textContent = 'Parts 1 and 2';
     }
   }
-  title.textContent = collections.get(selected) || 'All solutions';
+  title.textContent = collections.get(selected) || 'Start Your Workout';
   const browsingSbt = selected === 'sbt';
   const browsingPathfinder = selected === 'pathfinder';
   const browsingHcv = selected === 'hcv';
@@ -559,9 +559,9 @@ function render() {
   groupControl.hidden = groups.length < 2;
   const matches = group.value ? inCollection.filter(solution => solution.group === group.value) : inCollection;
   results.replaceChildren();
-  status.textContent = countLabel(matches.length, 'PDF');
+  status.textContent = matches.length ? countLabel(matches.length, 'PDF') : '';
   if (!matches.length) {
-    add(results, 'p', 'Solutions will appear here as they are uploaded.').className = 'empty';
+    add(results, 'p', 'Choose a collection above to browse its chapters.').className = 'empty';
     return;
   }
   const lists = new Map();

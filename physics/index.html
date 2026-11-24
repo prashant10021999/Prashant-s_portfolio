@@ -506,8 +506,6 @@ function renderOlympiadBrowser() {
   add(olympiadChapterDetails, 'p', description);
   if (sets) {
     add(olympiadChapterDetails, 'p', countLabel(sets, 'set') + ' in the source list · Starts on page ' + page);
-  } else if (!published) {
-    add(olympiadChapterDetails, 'p', 'Planned chapter');
   }
   const list = add(olympiadChapterDetails, 'ul', '');
   list.className = 'solution-list';
@@ -632,10 +630,9 @@ for (const [part, {chapters, start}] of advancedParts) {
 advancedChapterSelect.addEventListener('change', render);
 olympiadChapterSelect.append(new Option('Select a chapter', ''));
 let olympiadChapterNumber = 0;
-for (const [slug, [label, , sets]] of olympiadChapters) {
+for (const [slug, [label]] of olympiadChapters) {
   olympiadChapterNumber += 1;
-  const planned = !sets && !olympiadPdfs.has(olympiadPdfFolder + slug + '.pdf');
-  olympiadChapterSelect.append(new Option(olympiadChapterNumber + ' · ' + label + (planned ? ' (planned)' : ''), slug));
+  olympiadChapterSelect.append(new Option(olympiadChapterNumber + ' · ' + label, slug));
 }
 olympiadChapterSelect.addEventListener('change', render);
 group.addEventListener('change', render);

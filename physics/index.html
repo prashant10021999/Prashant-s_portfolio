@@ -7,26 +7,195 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Physics Workout | Prashant Sir</title>
 <style>
-:root{color-scheme:light;font:16px/1.6 system-ui,sans-serif;--ink:#152941;--muted:#506378;--blue:#125aa3;--edge:#cad8e6;--page:#f3f7fb}
-*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink)}
-header{background:#fff;border-bottom:1px solid var(--edge)}
-nav,main{width:min(1020px,calc(100% - 2rem));margin:auto}
-nav{display:flex;justify-content:space-between;gap:.75rem;flex-wrap:wrap;padding:.9rem 0}
-a{color:var(--blue);text-underline-offset:.2em}nav a{font-weight:650}
-main{padding:clamp(1.5rem,5vw,3rem) 0 3rem}h1,h2,h3,p{margin:0 0 .5rem}h1{font-size:clamp(2.2rem,6vw,3.6rem);letter-spacing:-.045em;line-height:1.12}h2{font-size:1.35rem}h3{font-size:1.05rem}p,small{color:var(--muted)}
-label{display:block;font-weight:650}input,select,button{font:inherit;color:inherit}input,select{max-width:100%;width:32rem;border:1px solid #8197ae;border-radius:.55rem;background:#fff;padding:.55rem .75rem}select{width:auto;min-width:12rem}button{cursor:pointer}a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #1669ba;outline-offset:3px}
-.collections{display:grid;grid-template-columns:repeat(3,1fr);gap:.65rem;margin:.75rem 0 1.4rem}.collection{background:#fff;border:1px solid var(--edge);border-radius:.65rem;text-align:left;padding:.7rem .85rem;min-height:4.4rem}.collection strong,.collection small{display:block}.collection:hover,.collection[aria-pressed=true]{border-color:var(--blue)}.collection[aria-pressed=true]{background:#e5f0fc}.results-head{display:flex;align-items:baseline;justify-content:space-between;gap:.7rem;flex-wrap:wrap}.group{margin:1rem 0}.solution-list{list-style:none;padding:0;margin:.4rem 0}.solution-list li,.empty{background:#fff;border:1px solid var(--edge);border-radius:.55rem;padding:.7rem .85rem;margin:.45rem 0}.solution-list li{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;flex-wrap:wrap}.solution-list a:first-child{font-weight:650}.group-select{margin:.7rem 0 1rem}[hidden]{display:none!important}
-.pdf-actions{display:flex;gap:.5rem 1rem;flex-wrap:wrap}
-@media(max-width:690px){.collections{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:365px){.collections{grid-template-columns:1fr}}
+:root {
+  color-scheme: dark;
+  font: 16px/1.6 "Open Sans", system-ui, sans-serif;
+  --page: #101d2a;
+  --ink: #f9f5ed;
+  --muted: #c4ced9;
+  --gold: #f5c78c;
+  --edge: rgba(248, 241, 231, .19);
+  --panel: #172836;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 85% 24%, #263846, transparent 54%), var(--page);
+  color: var(--ink);
+}
+body > header { border-bottom: 1px solid var(--edge); background: rgba(16, 29, 42, .72); }
+nav, main { width: min(1120px, calc(100% - 3rem)); margin-inline: auto; }
+nav {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem 1.25rem;
+  flex-wrap: wrap;
+  padding: .9rem 0;
+}
+a { color: var(--gold); text-underline-offset: .2em; }
+nav a { font-weight: 650; }
+.site-brand { font: 700 1.2rem Georgia, serif; color: var(--ink); text-decoration: none; }
+.site-brand:hover { color: var(--gold); }
+main { padding: clamp(1.35rem, 4vw, 2.75rem) 0 4rem; }
+h1, h2, h3, p, figure { margin: 0; }
+h1, h2 { font-family: Georgia, serif; line-height: 1.1; }
+h1 { font-size: clamp(2.7rem, 7.1vw, 5.35rem); letter-spacing: -.045em; }
+h2 { font-size: clamp(1.5rem, 3.25vw, 2.125rem); }
+h3 { font-size: 1.05rem; }
+p, small, #status { color: var(--muted); }
+.workout-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(9rem, 14rem);
+  align-items: center;
+  gap: 1.5rem 2.5rem;
+  padding: clamp(1.5rem, 4.5vw, 3.2rem);
+  margin-bottom: clamp(1.75rem, 4vw, 2.6rem);
+  background: linear-gradient(112deg, #172836 30%, #263b47);
+  border: 1px solid var(--edge);
+  border-top-color: rgba(245, 199, 140, .55);
+  border-radius: 1.25rem;
+  box-shadow: 0 20px 48px rgba(5, 12, 19, .26);
+}
+.workout-hero p { max-width: 34rem; margin-top: .95rem; font-size: clamp(1rem, 2vw, 1.15rem); }
+.workout-hero img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--edge);
+  border-radius: .75rem;
+}
+.workout-hero figcaption { margin-top: .4rem; color: var(--muted); font-size: .75rem; line-height: 1.4; }
+label { display: block; margin-bottom: .3rem; font-weight: 650; }
+select, button { font: inherit; color: inherit; }
+select {
+  width: min(100%, 32rem);
+  min-height: 2.8rem;
+  background: var(--page);
+  border: 1px solid #6e8496;
+  border-radius: .55rem;
+  padding: .5rem .75rem;
+}
+button { cursor: pointer; }
+a:focus-visible, button:focus-visible, select:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+.collections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: .75rem;
+  margin: .75rem 0 1.25rem;
+}
+#collections { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .85rem; margin-bottom: 1.7rem; }
+.collection {
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: .75rem;
+  padding: .65rem .9rem;
+  min-height: 3.75rem;
+  text-align: left;
+}
+.collection strong, .collection small { display: block; }
+.collection small { margin-top: .15rem; }
+.collection small:empty { display: none; }
+#collections .collection {
+  position: relative;
+  grid-column: span 2;
+  min-height: 6.1rem;
+  padding: 1.05rem 2.75rem 1.05rem 1.15rem;
+  background: linear-gradient(145deg, #203544, var(--panel));
+}
+#collections .collection::after {
+  content: "";
+  position: absolute;
+  right: 1.15rem;
+  top: calc(50% - .25rem);
+  width: .5rem;
+  height: .5rem;
+  border-top: 2px solid var(--gold);
+  border-right: 2px solid var(--gold);
+  transform: rotate(45deg);
+}
+#collections .collection strong { font: 700 clamp(1.2rem, 2.5vw, 1.55rem)/1.2 Georgia, serif; }
+#collections .collection:is([data-collection="jee-advanced"], [data-collection="olympiad"]) {
+  grid-column: span 3;
+  min-height: 7rem;
+  background: linear-gradient(145deg, #30444d, #1c3040 65%);
+  border-top-color: rgba(245, 199, 140, .62);
+}
+.collection:hover, #collections .collection:hover { border-color: var(--gold); }
+.collection[aria-pressed="true"], #collections .collection[aria-pressed="true"] {
+  border-color: var(--gold);
+  background: #263a48;
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+.collection[aria-pressed="true"] strong { color: var(--gold); }
+.workout-results {
+  background: rgba(16, 29, 42, .85);
+  border: 1px solid var(--edge);
+  border-radius: 1rem;
+  padding: clamp(1rem, 3vw, 1.75rem);
+}
+.results-head { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem 1rem; flex-wrap: wrap; margin-bottom: .85rem; }
+.group, .group-select { margin: .75rem 0 1rem; }
+.solution-list { list-style: none; padding: 0; margin: .4rem 0; }
+.solution-list li, .empty {
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: .65rem;
+  padding: .75rem .85rem;
+  margin: .45rem 0;
+}
+.solution-list li { display: flex; justify-content: space-between; align-items: center; gap: .65rem 1rem; flex-wrap: wrap; }
+.pdf-actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.pdf-actions a {
+  border: 1px solid var(--edge);
+  border-radius: .45rem;
+  padding: .45rem .75rem;
+  font-size: .9rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.pdf-actions a:first-child { background: var(--gold); border-color: var(--gold); color: var(--page); }
+.pdf-actions a:hover { border-color: var(--gold); text-decoration: underline; }
+[hidden] { display: none !important; }
+@media (max-width: 680px) {
+  nav, main { width: calc(100% - 2rem); }
+  .workout-hero { grid-template-columns: 1fr; }
+  .workout-hero figure { display: none; }
+  #collections { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #collections .collection,
+  #collections .collection:is([data-collection="jee-advanced"], [data-collection="olympiad"]) { grid-column: auto; }
+}
+@media (max-width: 460px) {
+  #collections { grid-template-columns: 1fr; }
+  #collections .collection,
+  #collections .collection:is([data-collection="jee-advanced"], [data-collection="olympiad"]) { min-height: 4.65rem; }
+}
 </style>
 </head>
 <body>
-<header><nav aria-label="Site"><strong>Prashant Sir</strong><a href="../">Back to portfolio</a></nav></header>
+<header>
+  <nav aria-label="Site">
+    <a class="site-brand" href="../">Prashant Sir</a>
+    <a href="../">Back to portfolio</a>
+  </nav>
+</header>
 <main>
-<h1>Physics Workout</h1>
-<p>Build your problem-solving skills one chapter at a time.</p>
+<div class="workout-hero">
+  <div>
+    <h1>Physics Workout</h1>
+    <p>Practise for JEE Advanced and Physics Olympiads with my chapter-wise solutions to past papers and problems from Pathfinder, SBT and HCV.</p>
+  </div>
+  <figure>
+    <img src="../assets/img/project/monte-carlo-mueller-matrix.webp" alt="Grid of colour maps showing simulated changes in light polarisation" width="1031" height="1050">
+    <figcaption>Light polarisation simulation from my IIT Jodhpur thesis</figcaption>
+  </figure>
+</div>
 <section aria-labelledby="collections-title"><h2 id="collections-title">Pick Your Challenge</h2><div id="collections" class="collections"></div></section>
-<section aria-labelledby="results-title">
+<section class="workout-results" aria-labelledby="results-title">
 <div class="results-head"><h2 id="results-title">Start Your Workout</h2><span id="status" role="status"></span></div>
 <div id="group-control" class="group-select" hidden><label for="group">Chapter or exam session</label><select id="group"></select></div>
 <div id="pathfinder-browser" hidden>
@@ -91,8 +260,11 @@ label{display:block;font-weight:650}input,select,button{font:inherit;color:inher
 </template>
 <script>
 const collections = new Map([
-  ['pathfinder', 'Pathfinder'], ['sbt', 'SBT'], ['hcv', 'HCV'], ['jee-advanced', 'JEE Advanced PYQs'],
-  ['olympiad', 'Physics Olympiad']
+  ['jee-advanced', 'JEE Advanced PYQs'],
+  ['olympiad', 'Physics Olympiad'],
+  ['pathfinder', 'Pathfinder'],
+  ['sbt', 'SBT'],
+  ['hcv', 'HCV']
 ]);
 const collator = new Intl.Collator('en', {numeric: true});
 const formatGroup = slug => slug.split('-').map(word => {

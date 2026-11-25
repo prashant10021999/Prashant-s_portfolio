@@ -31,6 +31,67 @@
   <!-- Template Main CSS File -->
   <link href="assets/css/style.css" rel="stylesheet">
   <style>
+    #header.faculty-header {
+      --faculty-bg: #101d2a;
+      --faculty-text: #f9f5ed;
+      --faculty-muted: #c4ced9;
+      --faculty-accent: #f5c78c;
+      --faculty-line: rgba(248, 241, 231, .18);
+      display: block;
+      height: auto;
+      min-height: 100vh;
+      min-height: 100svh;
+      overflow: visible;
+      color: var(--faculty-text);
+      background: radial-gradient(ellipse at 85% 24%, #263846, transparent 54%), var(--faculty-bg);
+    }
+    #header.faculty-header .faculty-shell { display: block; width: min(1180px, calc(100% - 3rem)); max-width: none; padding: 0; }
+    #header .faculty-topbar { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; min-height: 76px; border-bottom: 1px solid var(--faculty-line); }
+    #header .faculty-brand { color: var(--faculty-text); font-weight: 700; font-size: 1.15rem; letter-spacing: -.02em; white-space: nowrap; }
+    #header.faculty-header .nav-menu { margin: 0; }
+    #header.faculty-header .nav-menu ul { align-items: center; gap: clamp(.8rem, 2vw, 1.6rem); }
+    #header.faculty-header .nav-menu li { margin: 0; }
+    #header.faculty-header .nav-menu a { color: var(--faculty-muted); font: 600 .9rem/1.4 "Open Sans", sans-serif; white-space: nowrap; }
+    #header.faculty-header .nav-menu a:hover, #header.faculty-header .nav-menu .active > a { color: var(--faculty-accent); }
+    #header.faculty-header .nav-menu a::before { background-color: var(--faculty-accent); }
+    #header .faculty-hero { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); align-items: center; gap: clamp(2rem, 6vw, 6rem); padding: clamp(3rem, 7vh, 5.5rem) 0 clamp(2rem, 5vh, 4rem); }
+    #header .faculty-hero h1 { margin: 0 0 .85rem; color: var(--faculty-text); font: 400 clamp(4rem, 7vw, 6.6rem)/.97 Georgia, serif; letter-spacing: -.06em; }
+    #header .faculty-role { margin: 0 0 1.15rem; color: var(--faculty-accent); font: 600 clamp(1.15rem, 2.2vw, 1.55rem)/1.4 "Open Sans", sans-serif; }
+    #header .faculty-intro { max-width: 52ch; margin: 0; color: var(--faculty-muted); font-size: clamp(1rem, 1.7vw, 1.13rem); line-height: 1.75; }
+    #header .faculty-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.6rem; }
+    #header .faculty-actions a { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: .65rem 1.15rem; border: 1px solid var(--faculty-line); border-radius: .4rem; color: var(--faculty-text); font-weight: 700; }
+    #header .faculty-actions .faculty-primary { border-color: var(--faculty-accent); color: var(--faculty-bg); background: var(--faculty-accent); }
+    #header .faculty-actions a:hover { border-color: var(--faculty-accent); }
+    #header .faculty-actions .faculty-primary:hover { background: #ffdcae; }
+    #header .faculty-affiliation { margin: 1.45rem 0 0; color: var(--faculty-muted); font-size: .9rem; }
+    #header .faculty-affiliation strong { color: var(--faculty-text); }
+    #header .faculty-portrait { justify-self: end; width: min(100%, 365px); margin: 0; padding: .5rem; border: 1px solid var(--faculty-line); border-radius: .9rem; background: rgba(235, 237, 240, .045); }
+    #header .faculty-portrait img { display: block; width: 100%; height: auto; border-radius: .55rem; }
+    #header .faculty-practice { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 2rem; border-top: 1px solid var(--faculty-line); border-bottom: 1px solid var(--faculty-line); }
+    #header .faculty-practice a { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-height: 68px; padding: .9rem 1.1rem; color: var(--faculty-text); font-weight: 650; }
+    #header .faculty-practice a + a { border-left: 1px solid var(--faculty-line); }
+    #header .faculty-practice a:hover, #header .faculty-practice span { color: var(--faculty-accent); }
+    #header.faculty-header a:focus-visible { outline: 2px solid var(--faculty-accent); outline-offset: 3px; }
+    #header.faculty-header.header-top { min-height: 0; height: 76px; background: var(--faculty-bg); border-bottom: 1px solid var(--faculty-line); }
+    #header.faculty-header.header-top .faculty-hero, #header.faculty-header.header-top .faculty-practice { display: none; }
+    #header.faculty-header.header-top .faculty-topbar { border: 0; }
+    @media (max-width: 991.98px) {
+      #header .faculty-topbar { padding-right: 3rem; }
+      #header .faculty-hero { gap: 2rem; }
+    }
+    @media (max-width: 767.98px) {
+      #header.faculty-header .faculty-shell { width: calc(100% - 2rem); }
+      #header .faculty-topbar { min-height: 62px; }
+      #header.faculty-header.header-top { height: 62px; }
+      #header .faculty-hero { grid-template-columns: minmax(0, 1fr); gap: 1.8rem; padding-top: 2.5rem; }
+      #header .faculty-hero h1 { font-size: clamp(3.25rem, 12vw, 5rem); }
+      #header .faculty-portrait { justify-self: start; width: min(100%, 315px); }
+    }
+    @media (max-width: 390px) {
+      #header .faculty-practice { grid-template-columns: minmax(0, 1fr); }
+      #header .faculty-practice a + a { border-left: 0; border-top: 1px solid var(--faculty-line); }
+    }
+
     #about .physics-about-heading { margin: 0 0 .75rem; }
     #about .content h4 { margin: 1.25rem 0 .5rem; font-size: 1.05rem; font-weight: 700; }
     #about .physics-about-link { display: inline-block; margin: .2rem 0 1.35rem; font-weight: 700; text-decoration: underline; text-underline-offset: .2em; }
@@ -83,31 +144,43 @@
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
   <!-- ======= Header ======= -->
-  <header id="header" class="header-tops">
-
-    <div class="container">
-
-      <h1><a href="index.html">Prashant Sir</a></h1>
-      <h2 style="color:#fff">JEE and <span style="color:#12D640">Physics Olympiad Coach</span></h2>
-      <nav class="nav-menu d-none d-lg-block">
-        <ul>
-          <li class="active"><a href="#header"> <span>Home</span></a></li>
-          <li><a href="#about"><span>About</span></a></li>
-          <li><a href="#Education"> <span>Work Experience</span></a></li>
-          <li><a href="#portfolio"> <span>Projects</span></a></li>
-          <li><a href="physics/"><span>Physics Workout</span></a></li>
-          <li><a href="#contacts"> <span>Contact</span></a></li>
-
-        </ul>
-      </nav><!-- .nav-menu -->
-
-      <div class="social-links">
-
-          <a href="https://github.com/prashant10021999" target="_blank" class="github"><i class="bx bxl-github"></i></a>
-          <a href="mailto:prashantkb2005@gmail.com" target="_blank" class="google"><i class="bx bxl-google"></i></a>
-
+  <header id="header" class="header-tops faculty-header">
+    <div class="container faculty-shell">
+      <div class="faculty-topbar">
+        <a class="faculty-brand" href="#header" data-portfolio-section>Prashant Sir</a>
+        <nav class="nav-menu d-none d-lg-block">
+          <ul>
+            <li class="active"><a href="#header"> <span>Home</span></a></li>
+            <li><a href="#about"><span>About</span></a></li>
+            <li><a href="#Education"> <span>Work Experience</span></a></li>
+            <li><a href="#portfolio"> <span>Projects</span></a></li>
+            <li><a href="physics/"><span>Physics Workout</span></a></li>
+            <li><a href="#contacts"> <span>Contact</span></a></li>
+  
+          </ul>
+        </nav><!-- .nav-menu -->
       </div>
 
+      <div class="faculty-hero">
+        <div class="faculty-introduction">
+          <h1>Prashant Sir</h1>
+          <p class="faculty-role">JEE &amp; Physics Olympiad Faculty</p>
+          <p class="faculty-intro">I help students turn unfamiliar physics problems into models they can test. My lessons pair clear derivations with everyday examples, and the Physics Workout gives you chapterwise practice with worked solutions.</p>
+          <div class="faculty-actions">
+            <a class="faculty-primary" href="physics/">Open Physics Workout</a>
+            <a href="#about" data-portfolio-section>Teaching approach</a>
+          </div>
+          <p class="faculty-affiliation">JEE Physics Coach at <strong>Narayana Institute</strong></p>
+        </div>
+        <figure class="faculty-portrait">
+          <img src="assets/img/prashant-portrait.webp" alt="Prashant Sir holding a statue" width="1122" height="1402" fetchpriority="high" decoding="async">
+        </figure>
+      </div>
+
+      <nav class="faculty-practice" aria-label="Previous-year question collections">
+        <a href="physics/?collection=jee-advanced">JEE Advanced PYQs <span aria-hidden="true">↗</span></a>
+        <a href="physics/?collection=olympiad">Physics Olympiad PYQs <span aria-hidden="true">↗</span></a>
+      </nav>
     </div>
   </header><!-- End Header -->
 

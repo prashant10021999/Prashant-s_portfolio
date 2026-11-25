@@ -114,6 +114,29 @@
     @media (max-width: 767px) {
       #about .physics-demo-grid, #about .physics-lesson-grid { grid-template-columns: minmax(0, 1fr); }
     }
+
+    #portfolio .research-feature, #portfolio .research-card { border: 1px solid #ffffff22; border-radius: .85rem; background: #121f2a; }
+    #portfolio .research-feature { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr); align-items: center; gap: clamp(1.5rem, 4vw, 3.25rem); padding: clamp(1.15rem, 4vw, 2.5rem); margin-bottom: 1.5rem; }
+    #portfolio .research-meta { margin: 0 0 .6rem; color: #f5c78c; font-size: .87rem; font-weight: 700; }
+    #portfolio .research-feature h3 { margin: 0 0 .95rem; color: #f9f5ed; font: 400 clamp(2rem, 4vw, 3.25rem)/1.12 Georgia, serif; letter-spacing: -.035em; }
+    #portfolio .research-title { color: #f9f5ed; font-weight: 650; }
+    #portfolio .research-copy p, #portfolio .research-card p { margin: 0 0 .8rem; color: #c4ced9; line-height: 1.7; }
+    #portfolio .research-copy p:last-child, #portfolio .research-card p:last-child { margin-bottom: 0; }
+    #portfolio .research-copy .research-title { color: #f9f5ed; }
+    #portfolio .research-feature figure, #portfolio .research-card figure { margin: 0; }
+    #portfolio .research-feature img { display: block; width: 100%; height: clamp(14rem, 31vw, 22rem); object-fit: contain; border-radius: .5rem; background: #0c1720; }
+    #portfolio .research-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.1rem; }
+    #portfolio .research-card { min-width: 0; overflow: hidden; }
+    #portfolio .research-card img { display: block; width: 100%; height: clamp(12rem, 21vw, 17rem); object-fit: contain; background: #0c1720; }
+    #portfolio .research-feature figcaption, #portfolio .research-card figcaption { color: #b6c1cc; font-size: .8rem; line-height: 1.45; }
+    #portfolio .research-feature figcaption { margin-top: .55rem; }
+    #portfolio .research-card figcaption { padding: .55rem 1.15rem 0; }
+    #portfolio .research-card-copy { padding: 1.05rem 1.15rem 1.3rem; }
+    #portfolio .research-card h3 { margin: 0 0 .6rem; color: #f9f5ed; font-size: 1.3rem; font-weight: 700; }
+    #portfolio .research-card strong { color: #f5c78c; }
+    @media (max-width: 767.98px) {
+      #portfolio .research-feature, #portfolio .research-grid { grid-template-columns: minmax(0, 1fr); }
+    }
   </style>
 
 
@@ -421,122 +444,72 @@
 <!-- Start Project Section -->
 <section id="portfolio" class="portfolio">
   <div class="container">
-
     <div class="section-title">
       <h2>Projects</h2>
     </div>
 
-    <div class="row">
-      <div class="col-lg-12 d-flex justify-content-center">
-        <ul id="portfolio-flters">
-          <li data-filter="*" class="filter-active">All Projects</li>
-          <li data-filter=".filter-app">Thesis & Course Projects</li>
-          <li data-filter=".filter-project">Self-Exploratory Projects</li>
-        </ul>
+    <article class="research-feature">
+      <div class="research-copy">
+        <p class="research-meta">M.Tech. thesis · IIT Jodhpur · 2025</p>
+        <h3>What polarised light reveals about materials</h3>
+        <p class="research-title">Mueller Matrix for Nano-Sized Objects Manufactured Under Laser-Based Additive Process</p>
+        <p>My thesis examined how layered films, atmospheric particles and an electrochemically etched Al-7075 surface change the polarisation of light. I used Mueller matrices, which connect the state of the incoming light to the state measured after it passes through or reflects from a sample.</p>
+        <p>The work combined thin-film modelling, simulations of atmospheric light scattering and laboratory polarimetry. I learned to treat the optical setup and the simulation as two parts of the same question. What does the model predict, and what can the instrument actually measure?</p>
       </div>
-    </div>
-    <div class="row portfolio-container" style="row-gap: 20px; column-gap: 15px;">
-      <div class="col-lg-4 col-md-6 portfolio-item filter-app">
-        <center><h4>Soleil Babinet Compensator</h4></center>
-        <div class="portfolio-wrap">
-          <img src="assets\img\project\soliel babinet compensator.jpg" class="img-fluid" alt="Soleil Babinet Compensator">
-          <div class="portfolio-info">
-            <div class="portfolio-links">
-              <a href="projects/twitteranalysis.html" data-gall="portfolioDetailsGallery" data-vbtype="iframe" class="venobox" title="Project Details"><i class="bx bx-info-circle"></i></a>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-4 col-md-6 portfolio-item filter-app">
-        <center><h4>Monte Carlo for Scattering</h4></center>
-        <div class="portfolio-wrap">
-          <img src="assets\img\project\mueller matrix.jpg" class="img-fluid" alt="Monte Carlo Simulation">
-          <div class="portfolio-info">
-            <div class="portfolio-links">
-              <a href="projects/twitteranalysis.html" data-gall="portfolioDetailsGallery" data-vbtype="iframe" class="venobox" title="Project Details"><i class="bx bx-info-circle"></i></a>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-4 col-md-6 portfolio-item filter-app">
-        <center><h4>Helio-Stat Concentrator</h4></center>
-        <div class="portfolio-wrap">
-          <img src="assets\img\project\helio stat.jpg" class="img-fluid" alt="Helio-Stat Based Solar Concentrator">
-          <div class="portfolio-info">
-            <div class="portfolio-links">
-              <a href="projects/twitteranalysis.html" data-gall="portfolioDetailsGallery" data-vbtype="iframe" class="venobox" title="Project Details"><i class="bx bx-info-circle"></i></a>
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="col-lg-4 col-md-6 portfolio-item filter-app">
-        <center><h4>Laser Additive Manufacturing</h4></center>
-        <div class="portfolio-wrap">
-          <img src="assets\img\project\laser.jpeg" class="img-fluid" alt="Laser Additive Manufacturing">
-          <div class="portfolio-info">
-            <div class="portfolio-links">
-              <a href="projects/twitteranalysis.html" data-gall="portfolioDetailsGallery" data-vbtype="iframe" class="venobox" title="Project Details"><i class="bx bx-info-circle"></i></a>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-4 col-md-6 portfolio-item filter-project">
-        <center><h4>Facial Emotion Recognition</h4></center>
-        <div class="portfolio-wrap">
-          <img src="assets\img\project\facial.jpg" class="img-fluid" alt="Facial Emotion Recognition">
-          <div class="portfolio-info">
-            <div class="portfolio-links">
-              <a href="projects/iras.html" data-gall="portfolioDetailsGallery" data-vbtype="iframe" class="venobox" title="Project Details"><i class="bx bx-info-circle"></i></a>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-4 col-md-6 portfolio-item filter-project">
-        <center><h4>Movie Recommender</h4></center>
-        <div class="portfolio-wrap">
-          <img src="assets\img\project\movie recom.jpg" class="img-fluid" alt="Movie Recommender">
-          <div class="portfolio-info">
-            <div class="portfolio-links">
-              <a href="projects/recommender.html" data-gall="portfolioDetailsGallery" data-vbtype="iframe" class="venobox" title="Project Details"><i class="bx bx-info-circle"></i></a>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-4 col-md-6 portfolio-item filter-project">
-        <center><h4>Resume Section Classifier</h4></center>
-        <div class="portfolio-wrap">
-          <img src="assets/img/project/resume.jpg" class="img-fluid" alt="Resume Section Classifier">
-          <div class="portfolio-info">
-            <div class="portfolio-links">
-              <a href="projects/resume.html" data-gall="portfolioDetailsGallery" data-vbtype="iframe" class="venobox" title="Project Details"><i class="bx bx-info-circle"></i></a>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-4 col-md-6 portfolio-item filter-project">
-        <center><h4>Hand Controlled Presentation</h4></center>
-        <div class="portfolio-wrap">
-          <img src="assets/img/project/vdg.jpg" class="img-fluid" alt="Gesture Controlled Presentation">
-          <div class="portfolio-info">
-            <div class="portfolio-links">
-              <a href="projects/vdg.html" data-gall="portfolioDetailsGallery" data-vbtype="iframe" class="venobox" title="Project Details"><i class="bx bx-info-circle"></i></a>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-4 col-md-6 portfolio-item filter-project">
-        <center><h4>ML-Web-App</h4></center>
-        <div class="portfolio-wrap">
-          <img src="assets/img/project/ml.jpg" class="img-fluid" alt="ML-Web-App">
-          <div class="portfolio-info">
-            <div class="portfolio-links">
-              <a href="projects/ml.html" data-gall="portfolioDetailsGallery" data-vbtype="iframe" class="venobox" title="Project Details"><i class="bx bx-info-circle"></i></a>
-            </div>
-          </div>
-        </div>
-      </div>
+      <figure>
+        <img src="assets/img/project/thesis-polarimetry.webp" alt="Thesis laboratory setup with a laser, polarisation optics, the sample and a detector" width="443" height="750" loading="lazy" decoding="async">
+        <figcaption>Optical measurement setup from my thesis presentation.</figcaption>
+      </figure>
+    </article>
 
+    <div class="research-grid">
+      <article class="research-card">
+        <figure>
+          <img src="assets/img/project/soliel%20babinet%20compensator.jpg" alt="Optical schematic showing the Soleil–Babinet compensator between a polarisation generator and analyser" loading="lazy" decoding="async">
+          <figcaption>Schematic of the compensator in an optical measurement system.</figcaption>
+        </figure>
+        <div class="research-card-copy">
+          <h3>Soleil–Babinet compensator</h3>
+          <p>A sliding birefringent wedge lets you dial in a phase delay between two components of light. That makes the device useful for calibrating polarisation measurements and compensating for unwanted retardance in an optical system.</p>
+          <p><strong>My contribution.</strong> I developed a library to calculate the compensator’s Mueller matrix. Modelling how a mechanical adjustment changes the optical signal helped me see why wedge travel, axis alignment and wavelength calibration matter when you design an instrument.</p>
+        </div>
+      </article>
+
+      <article class="research-card">
+        <figure>
+          <img src="assets/img/project/monte-carlo-mueller-matrix.webp" alt="Grid of sixteen simulated Mueller-matrix maps for polarised light scattering" width="1031" height="1050" loading="lazy" decoding="async">
+          <figcaption>Mueller-matrix maps from my atmospheric scattering simulation.</figcaption>
+        </figure>
+        <div class="research-card-copy">
+          <h3>Monte Carlo for light scattering</h3>
+          <p>I wanted to know how a beam’s polarisation changes when the photons take many different paths. I simulated many scattering histories and combined their contributions to estimate the outgoing light. Each path can look different, so the result depends on how well the sample of paths represents the scattering process.</p>
+          <p><strong>Why the method interested me.</strong> The same idea appears in financial-market risk analysis. You can run many plausible return paths to see how widely outcomes vary. In both problems, the useful questions are what assumptions produced the distribution and how sensitive the result is to changing them.</p>
+        </div>
+      </article>
+
+      <article class="research-card">
+        <figure>
+          <img src="assets/img/project/helio%20stat.jpg" alt="Reference photo of a heliostat mirror field directing sunlight toward a central solar receiver" loading="lazy" decoding="async">
+          <figcaption>Reference photo of a central-receiver heliostat field.</figcaption>
+        </figure>
+        <div class="research-card-copy">
+          <h3>Heliostat solar concentrator</h3>
+          <p>I designed a heliostat-based solar concentrator in 3DOptix. The design question was simple to state and harder to solve. How do you keep reflected sunlight on a fixed receiver while the Sun keeps moving?</p>
+          <p><strong>What I learned about design.</strong> The law of reflection tells you where to aim. A working design also has to account for how a small pointing error shifts the spot and how much light may miss the receiver. That made alignment a measurable design constraint.</p>
+        </div>
+      </article>
+
+      <article class="research-card">
+        <figure>
+          <img src="assets/img/project/al7075-polarised-micrograph.webp" alt="Polarised-light micrograph of etched Al-7075 showing bands along the rolling direction" width="1100" height="826" loading="lazy" decoding="async">
+          <figcaption>Etched Al-7075 under polarised light, from the thesis characterisation work.</figcaption>
+        </figure>
+        <div class="research-card-copy">
+          <h3>Laser additive manufacturing</h3>
+          <p>A laser builds a metal part by melting material along a programmed path. The path also determines where heat goes and how the metal cools. Those changes can affect the internal structure even when the outside of the part looks right.</p>
+          <p><strong>How it changed my thinking.</strong> I learned to work backwards from a feature I wanted to explain. Choose a process variable, predict what it should change, and decide how to tell whether the prediction holds. My optical characterisation work gave me a way to connect that reasoning to measurements.</p>
+        </div>
+      </article>
     </div>
   </div>
 </section>

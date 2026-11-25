@@ -106,6 +106,7 @@
     #about .physics-demo { margin: 0; overflow: hidden; border: 1px solid rgba(255, 255, 255, .18); border-radius: .75rem; background: #121d28; }
     #about .physics-demo-image { display: block; background: #09121b; }
     #about .physics-demo-image img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: contain; }
+    #about .physics-demo-image svg { display: block; width: 100%; height: auto; }
     #about .physics-demo figcaption { padding: 1rem 1.15rem; }
     #about .physics-demo h3 { margin: 0 0 .5rem; font-size: 1.1rem; font-weight: 700; color: #fff; }
     #about .physics-demo p { margin: 0 0 .75rem; color: #e3e9ed; line-height: 1.55; }
@@ -363,6 +364,56 @@
             <h3>Particle tracks in a cloud chamber</h3>
             <p>A charged particle ionises the vapour along its path. Droplets condense on those ions, turning an otherwise invisible passage into a track you can examine.</p>
             <small><a href="https://commons.wikimedia.org/wiki/File:Cosmic_radiations_in_a_diffusion_cloud_chamber.png">Cloudylabs</a> · <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC BY-SA 3.0</a></small>
+          </figcaption>
+        </figure>
+        <figure class="physics-demo" id="neutron-interference">
+          <div class="physics-demo-image">
+            <svg viewBox="0 0 420 315" width="420" height="315" role="img" aria-labelledby="neutron-interference-title neutron-interference-description">
+              <title id="neutron-interference-title">Two paths for a neutron wave</title>
+              <desc id="neutron-interference-description">A crystal splits an incoming neutron wave into two paths. The paths meet again at a crystal and both detector counts depend on how the waves line up.</desc>
+              <defs>
+                <linearGradient id="neutron-diagram-bg" x2="0" y2="1">
+                  <stop stop-color="#1c3044"/>
+                  <stop offset="1" stop-color="#09121b"/>
+                </linearGradient>
+                <pattern id="neutron-diagram-grid" width="21" height="21" patternUnits="userSpaceOnUse">
+                  <path d="M21 0H0V21" fill="none" stroke="#6c8ba5" stroke-opacity=".17"/>
+                </pattern>
+                <marker id="neutron-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="userSpaceOnUse">
+                  <path d="M1 1l5 3-5 3" fill="none" stroke="#cbd8e4" stroke-width="1.4"/>
+                </marker>
+              </defs>
+              <path d="M0 0h420v315H0z" fill="url(#neutron-diagram-bg)"/>
+              <path d="M0 0h420v315H0z" fill="url(#neutron-diagram-grid)"/>
+              <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <g stroke="#cbd8e4" stroke-width="2" marker-end="url(#neutron-arrow)">
+                  <path d="M26 190H92"/>
+                  <path d="M280 117H389"/>
+                  <path d="M278 111l45-62"/>
+                </g>
+                <path d="M101 190l53-73h120" stroke="#75dddc" stroke-width="4"/>
+                <path d="M101 190h120l53-73" stroke="#f5c78c" stroke-width="4"/>
+                <path d="M95 180l12 20m41-93 12 20m55 53 12 20m41-93 12 20" stroke="#f9f5ed" stroke-width="5"/>
+                <circle cx="330" cy="41" r="8" stroke="#cbd8e4" stroke-width="2"/>
+                <circle cx="400" cy="117" r="8" stroke="#cbd8e4" stroke-width="2"/>
+              </g>
+              <g font-family="system-ui, sans-serif" font-size="17" fill="#e8f0f7">
+                <text x="26" y="170">Neutron beam</text>
+                <text x="101" y="224" text-anchor="middle">Split</text>
+                <text x="194" y="101" text-anchor="middle" fill="#75dddc">Path 1</text>
+                <text x="166" y="214" text-anchor="middle" fill="#f5c78c">Path 2</text>
+                <text x="281" y="146">Recombine</text>
+                <text x="329" y="82">Detectors</text>
+              </g>
+              <path d="M26 253h368" stroke="#829bb1" stroke-opacity=".55"/>
+              <text x="210" y="284" fill="#f9f5ed" font-family="Georgia, serif" font-size="22" text-anchor="middle">Neutron interferometer</text>
+            </svg>
+          </div>
+          <figcaption>
+            <h3>Modern physics · Neutrons can interfere</h3>
+            <p>Sound and light show interference, and so do matter waves. In a neutron interferometer, silicon crystals guide a neutron wave along two paths and bring it back together. When the waves line up, more neutrons reach one detector. When they are out of step, fewer reach it.</p>
+            <p><strong>Think it through</strong> If we tilt the setup so one path is higher than the other, how might gravity change the detector counts?</p>
+            <small>Original schematic · <a href="https://www.nist.gov/laboratories/tools-instruments/neutron-interferometry-and-optics-facilities">How neutron interferometers work (NIST)</a></small>
           </figcaption>
         </figure>
       </div>

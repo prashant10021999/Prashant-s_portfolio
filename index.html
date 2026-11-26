@@ -138,6 +138,19 @@
     @media (max-width: 767.98px) {
       #portfolio .research-feature, #portfolio .research-grid { grid-template-columns: minmax(0, 1fr); }
     }
+
+    #blog .blog-feed { display: grid; gap: 1rem; max-width: 48rem; }
+    #blog .blog-intro, #blog .blog-empty, #blog .blog-post p { color: #c4ced9; line-height: 1.7; }
+    #blog .blog-intro { max-width: 56ch; }
+    #blog .blog-empty, #blog .blog-post { margin: 0; padding: clamp(1rem, 3vw, 1.5rem); border: 1px solid #ffffff22; border-radius: .85rem; background: #121f2a; overflow-wrap: anywhere; }
+    #blog .blog-post ~ .blog-empty { display: none; }
+    #blog .blog-post time, #blog .blog-post a { color: #f5c78c; }
+    #blog .blog-post time { font-size: .9rem; }
+    #blog .blog-post h3 { margin: .35rem 0 1rem; color: #f9f5ed; font-size: clamp(1.25rem, 3vw, 1.7rem); }
+    #blog .blog-post h4 { margin: 1rem 0 .35rem; color: #f9f5ed; font-size: 1rem; font-weight: 700; }
+    #blog .blog-post p:last-child { margin-bottom: 0; }
+    #blog .blog-post a { text-decoration: underline; text-underline-offset: .2em; }
+    #blog .blog-post a:focus-visible { outline: 2px solid #f5c78c; outline-offset: 3px; }
   </style>
 
 
@@ -179,6 +192,7 @@
             <li><a href="#Education"> <span>Work Experience</span></a></li>
             <li><a href="#portfolio"> <span>Projects</span></a></li>
             <li><a href="physics/"><span>Physics Workout</span></a></li>
+            <li><a href="#blog"><span>STEM Blog</span></a></li>
             <li><a href="#contacts"> <span>Contact</span></a></li>
   
           </ul>
@@ -603,6 +617,33 @@
     </div>
   </section> <!--End Links Section -->
 
+
+  <section id="blog" aria-labelledby="blog-heading">
+    <div class="container">
+      <div class="section-title">
+        <h2 id="blog-heading">STEM Blog</h2>
+      </div>
+      <p class="blog-intro">New developments in science, technology, engineering and maths, with my take on what they mean for students.</p>
+      <div class="blog-feed">
+        <!--
+        Copy the article below outside this comment for each new post.
+        Place the newest article first. Use YYYY-MM-DD for the date in datetime.
+        Add more paragraphs as needed. In plain text, write &amp; for & and &lt; for <.
+
+        <article class="blog-post">
+          <time datetime="YYYY-MM-DD">Day Month Year</time>
+          <h3>Post title</h3>
+          <h4>What happened</h4>
+          <p>Explain the development in a few sentences.</p>
+          <p><a href="SOURCE-URL">Read the original source</a></p>
+          <h4>My take</h4>
+          <p>Share your take and connect it to something students know.</p>
+        </article>
+        -->
+        <p class="blog-empty">The first post is coming soon.</p>
+      </div>
+    </div>
+  </section>
 
   <!-- Start Contact Section -->
 

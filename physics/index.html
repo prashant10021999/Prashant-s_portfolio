@@ -181,6 +181,7 @@ a:focus-visible, button:focus-visible, select:focus-visible {
   <nav aria-label="Site">
     <a class="site-brand" href="../">Prashant Sir</a>
     <a href="../">Back to portfolio</a>
+    <a id="manage-pdfs" href="https://script.google.com/macros/s/AKfycbzRGOObYY205hnSljmhTvth2HA0VCAMjB588Ghkli0Og-tW2eyBX7b6fj_WD6bvg0fG/exec">Manage PDFs</a>
   </nav>
 </header>
 <main>
@@ -526,7 +527,47 @@ function addPdfLinks(item, url, label, placeholderFilename = '') {
   addPdfDownload(actions, url, label, placeholderFilename);
   if (placeholderFilename) add(actions, 'small', 'Placeholder');
 }
+const workoutCatalogUrl = "https://script.google.com/macros/s/AKfycbwbcHphxLbFrrLY6uJ6Z4BrHxudchQ5f72u_T_cOcXde2QydpGk1mojw3Ad6sJxLQhr/exec";
+let publishedWorkoutPdfs = {};
+const driveLinkHosts = new Set(['drive.google.com', 'drive.usercontent.google.com', 'drive.googleusercontent.com', 'docs.google.com']);
+
+function absoluteHttpsLink(value, hosts) {
+  try {
+    const url = new URL(value);
+    if (url.protocol === 'https:' && (!hosts || hosts.has(url.hostname))) return url.href;
+  } catch (_) { /* Ignore missing or invalid links. */ }
+  return '';
+}
+
+function addWorkoutResources(item, entry, label) {
+  const view = absoluteHttpsLink(entry?.view, driveLinkHosts);
+  const download = absoluteHttpsLink(entry?.download, driveLinkHosts);
+  const video = absoluteHttpsLink(entry?.video);
+  if (view && download) {
+    const actions = add(item, 'div', '');
+    actions.className = 'pdf-actions';
+    const viewLink = add(actions, 'a', 'View PDF');
+    viewLink.href = view;
+    viewLink.setAttribute('aria-label', 'View ' + label + ' PDF');
+    const downloadLink = add(actions, 'a', 'Download PDF');
+    downloadLink.href = download;
+    downloadLink.setAttribute('aria-label', 'Download ' + label + ' PDF');
+  } else if (entry?.removed) {
+    add(item, 'small', 'Coming soon');
+  }
+  if (video) {
+    const actions = add(item, 'div', '');
+    actions.className = 'pdf-actions';
+    const link = add(actions, 'a', 'Watch Video');
+    link.href = video;
+    link.target = '_blank';
+    link.rel = 'noopener';
+  }
+  return Boolean((view && download) || entry?.removed);
+}
+
 function addPdfActions(item, repository, path, label, placeholderFilename) {
+  if (addWorkoutResources(item, publishedWorkoutPdfs[repository + '/' + path], label)) return;
   if (exerciseCatalogs.get(repository)?.has('/' + path)) {
     addPdfLinks(item, new URL(path, repositoryUrl(repository)).href, label);
   } else if (placeholderFilename) {
@@ -667,14 +708,17 @@ function renderOlympiadBrowser() {
   const slug = olympiadChapterSelect.value;
   if (!slug) return;
   const [label, description] = olympiadChapters.get(slug);
-  const url = new URL('solutions/' + slug + '.pdf', repositoryUrl(olympiadRepository)).href;
+  const path = 'solutions/' + slug + '.pdf';
+  const url = new URL(path, repositoryUrl(olympiadRepository)).href;
   add(olympiadChapterDetails, 'h3', label);
   add(olympiadChapterDetails, 'p', description);
   const list = add(olympiadChapterDetails, 'ul', '');
   list.className = 'solution-list';
   const item = add(list, 'li', '');
   add(item, 'strong', 'Chapter solutions');
-  addPdfLinks(item, url, label);
+  if (!addWorkoutResources(item, publishedWorkoutPdfs[olympiadRepository + '/' + path], label)) {
+    addPdfLinks(item, url, label);
+  }
 }
 function render() {
   for (const button of cards.querySelectorAll('button')) {
@@ -797,6 +841,18 @@ olympiadChapterSelect.addEventListener('change', render);
 group.addEventListener('change', render);
 render();
 for (const repository of exerciseRepositories) loadExerciseCatalog(repository);
+if (workoutCatalogUrl) {
+  const catalog = new URL(workoutCatalogUrl);
+  catalog.searchParams.set('catalog', '1');
+  fetch(catalog, {cache: 'no-store', credentials: 'omit'}).then(response => {
+    if (!response.ok) throw Error('Catalog unavailable');
+    return response.json();
+  }).then(entries => {
+    if (!entries || typeof entries !== 'object' || Array.isArray(entries)) throw Error('Invalid catalog');
+    publishedWorkoutPdfs = entries;
+    render();
+  }).catch(error => console.warn('Drive PDF catalog unavailable:', error.message));
+}
 </script>
 </body>
 </html>
